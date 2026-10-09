@@ -1,0 +1,14 @@
+dotprod_formal: 1000008 vectors on the tensor core (0 with inconsistent outputs)
+  GPU == exact model              and GPU != FPGA: 1000008
+    case 0: gpu=00000000 golden=00000000 fpga=None  a=0000000000000000 b=0000000000000000 sa=0x38 sb=0x38
+    case 1: gpu=4cdc8000 golden=4cdc8000 fpga=None  a=7777777777777777 b=7777777777777777 sa=0x7e sb=0x7e
+    case 2: gpu=ccdc8000 golden=ccdc8000 fpga=None  a=7777777777777777 b=ffffffffffffffff sa=0x7e sb=0x7e
+    case 3: gpu=37800000 golden=37800000 fpga=None  a=1111111111111111 b=1111111111111111 sa=0x01 sb=0x01
+    case 4: gpu=00000000 golden=00000000 fpga=None  a=f7f7f7f7f7f7f7f7 b=7777777777777777 sa=0x38 sb=0x38
+    case 5: gpu=00000000 golden=00000000 fpga=None  a=8888888888888888 b=7777777777777777 sa=0x38 sb=0x38
+    case 6: gpu=7fffffff golden=7fc00000 fpga=None  a=2222222222222222 b=2222222222222222 sa=0x7f sb=0x38
+    case 7: gpu=c2000000 golden=c2000000 fpga=None  a=fedcba9876543210 b=0123456789abcdef sa=0x40 sb=0x30
+    case 8: gpu=43924000 golden=43924000 fpga=None  a=02ca2616a5be407e b=7777777777777777 sa=0x55 sb=0x2f
+    case 9: gpu=4a0dc000 golden=4a0dc000 fpga=None  a=bb8620cffdc2515a b=cccccccccccccccc sa=0x79 sb=0x7c
+    case 10: gpu=3d220000 golden=3d220000 fpga=None  a=1088089098009908 b=be57ffe9a6be1bf8 sa=0x02 sb=0x49
+    case 11: gpu=00000000 golden=00000000 fpga=None  a=ff738a04b371075a b=7777ff7fff7ff7ff sa=0x1c sb=0x00

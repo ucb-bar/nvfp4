@@ -1,0 +1,5 @@
+FP32 primitives: 2196 pairs, add/mul exact, exp2/recip max [1, 1] ULP vs RNE
+WS matrix: 6 runs, 4592 outputs exact; untouched C, modes, bank mapping, cycles pass
+vector commands: 220, all operations, masking, empty rows and continuation pass
+tiled attention: dense and causal, 3 blocks, max absolute error 7.92e-08
+PASS

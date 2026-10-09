@@ -1,0 +1,20 @@
+{
+  "seed": 11,
+  "causal": false,
+  "instructions": 1797,
+  "scratch_bytes": 96800,
+  "cycles": 770730,
+  "stage_max_abs_error": {
+    "norm1": 2.384185791015625e-07,
+    "q": 0.0,
+    "k": 0.0,
+    "v": 0.0,
+    "attention": 2.9802322387695312e-08,
+    "residual": 0.0,
+    "norm2": 2.384185791015625e-07,
+    "up": 0.0,
+    "gate": 5.960464477539063e-08,
+    "output": 0.0
+  },
+  "transport": "fpga"
+}

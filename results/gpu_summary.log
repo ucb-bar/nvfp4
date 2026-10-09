@@ -1,0 +1,29 @@
+### allegro_fp4 -n 100000 --seed 7 --reference mmasim --fpga-out results/allegro_fp4_s7.out
+allegro_fp4: 100009 vectors on the tensor core (0 with inconsistent outputs)
+  GPU == golden (mmasim)          and GPU == FPGA: 99358
+  GPU == golden (mmasim)          and GPU != FPGA: 113
+  GPU != golden (mmasim)          and GPU != FPGA: 538
+### allegro_fp4 -n 100000 --seed 7 --fpga-out results/allegro_fp4_s7.out --save results/gpu_allegro_nvfp4_diff.json
+allegro_fp4: 100009 vectors on the tensor core (0 with inconsistent outputs)
+  GPU == golden (silicon)         and GPU == FPGA: 99358
+  GPU == golden (silicon)         and GPU != FPGA: 651
+### allegro_fp4 -n 20000 --seed 8 --modes mxfp4,fp4,mxfp4_b16 --reference mmasim --fpga-out results/allegro_fp4_s8_mx.out
+allegro_fp4: 20009 vectors on the tensor core (0 with inconsistent outputs)
+  GPU == golden (mmasim)          and GPU == FPGA: 19730
+  GPU != golden (mmasim)          and GPU == FPGA: 1
+  GPU != golden (mmasim)          and GPU != FPGA: 278
+### allegro_fp4 -n 20000 --seed 8 --modes mxfp4,fp4,mxfp4_b16 --fpga-out results/allegro_fp4_s8_mx.out --save results/gpu_allegro_othermodes_diff.json
+allegro_fp4: 20009 vectors on the tensor core (0 with inconsistent outputs)
+  GPU == golden (silicon)         and GPU == FPGA: 19730
+  GPU == golden (silicon)         and GPU != FPGA: 278
+  GPU != golden (silicon)         and GPU == FPGA: 1
+### dotprod_formal -n 100000 --seed 11 --fpga-out results/dotprod_formal_s11.out --save results/gpu_dotprod_formal_diff.json
+dotprod_formal: 100008 vectors on the tensor core (0 with inconsistent outputs)
+  GPU == exact model              and GPU == FPGA: 1938
+  GPU == exact model              and GPU == FPGA: 98070
+### vortex_fedp -n 100000 --seed 13 --fpga-out results/vortex_fedp_s13.out --save results/gpu_vortex_fedp_diff.json
+vortex_fedp: 100008 vectors on the tensor core (0 with inconsistent outputs)
+  GPU == Vortex RTL               and GPU == FPGA: 990
+  GPU == Vortex RTL               and GPU == FPGA: 18163
+  GPU != Vortex RTL               and GPU != FPGA: 80855
+  GPU == exact fused dot product (single RNE): 12406833054/100008

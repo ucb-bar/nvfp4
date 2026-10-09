@@ -1,0 +1,7 @@
+link checks
+2 x 8 units, tile up to 64 x 64 x 256
+memory read-back
+  run  0: 64 x 64 x 256 nvfp4     accumulate  2560 cycles
+  run  1: 64 x 64 x 256 nvfp4     accumulate  2560 cycles
+2 runs, 8192 outputs, 2097152 MACs in 47.0 s; device == integer dot-product model on 8192/8192
+PASS

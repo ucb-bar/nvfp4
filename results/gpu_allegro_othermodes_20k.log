@@ -1,0 +1,7 @@
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 9 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 6641 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 1, 13359 vectors
+allegro_fp4: 20009 vectors on the tensor core (0 with inconsistent outputs)
+  GPU == golden (silicon)         and GPU == FPGA: 20008
+  GPU != golden (silicon)         and GPU == FPGA: 1
+    case 17451: gpu=800b7fff golden=800b8000 fpga=800b7fff  mode=1 a=3e79c37d229fe96f3faa4728cb860534844028beb0ecf1ffcdce012e8bd04f6a b=ffb7486ff221c86f4b2651e2fd2290d730d5a9d63049d42b0c46d00dbf3e9ac9 sa=564680a4 sb=240d5e76 c=0x00000000

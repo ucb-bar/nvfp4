@@ -1,0 +1,4 @@
+Runtime quantization: 205 blocks nearest-even PASS; invalid inputs rejected
+RSQRT/SiLU/ABS CPU max ULP: {11: 1, 12: 56, 13: 0}
+RTX5090 RSQRT/SiLU/ABS max ULP: {11: 2, 12: 3, 13: 0}
+RTX5090 native E4M3/E2M1 conversion: 205 blocks bit-exact PASS

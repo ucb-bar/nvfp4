@@ -1,0 +1,117 @@
+[workspace]
+name = "nvfp4"
+version = "1.0.0"
+description = "NVFP4 compute SoC on an Artix-7 FPGA: a TSI-controlled tensor core, vector unit and kernel engine, with reference models and tests"
+channels = ["https://prefix.dev/conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.12.*"
+verilator = "5.*"
+cxx-compiler = "*"
+make = "*"
+vcstool = "*"
+
+[pypi-dependencies]
+numpy = "*"
+pyserial = "*"
+pyuartsi = { git = "https://github.com/ucb-bar/pyuartsi.git", rev = "f9f4843a2c4345ecca3a25af5cb9c60e26b4ec7d" }
+torch = { version = "*", index = "https://download.pytorch.org/whl/cpu" }
+
+# Maintenance
+
+[tasks.setup]
+cmd = "vcs import --skip-existing --input third_party.repos third_party && mkdir -p build && touch build/.setup-stamp"
+inputs = ["third_party.repos"]
+outputs = ["build/.setup-stamp"]
+description = "Fetch the third-party RTL at the commits in third_party.repos (idempotent, cached)"
+
+[tasks.build]
+args = [{ arg = "design", default = "nvfp4_tsi" }, { arg = "mhz", default = "50" }]
+cmd = "bash fpga/scripts/vivado.sh fpga/scripts/build.tcl {{ design }} {{ mhz }}"
+depends-on = ["setup"]
+description = "Build the Vivado project and bitstream of a design in build/<design>_<mhz>mhz/ (default: nvfp4_tsi 50)"
+
+[tasks._test-bus]
+cmd = "python host/run_tb.py"
+description = "Run the tensor-core bus test (fpga/sim/tb_tc.sv) in xsim"
+depends-on = ["setup"]
+
+[tasks._test-cosim]
+cmd = "python host/run_tsi.py --sim -r 6"
+description = "Run 6 random tensor-core runs through PyUARTSI against the Verilator model of the SoC"
+depends-on = ["setup"]
+
+[tasks.test]
+depends-on = ["_test-bus", "_test-cosim", "_test-compute", "_test-vector", "_test-kernel", "_test-transformer", "_test-transformer-primitives"]
+description = "Run all simulation tests: tensor-core bus, UART co-simulation, compute, vector handshake, kernel engine, transformer layer and primitives"
+
+[tasks._test-compute]
+cmd = "python host/run_compute.py"
+description = "Check the tensor-core schedule, the FP32 ALU, the vector operations and tiled attention"
+depends-on = ["setup"]
+
+[tasks._test-vector]
+cmd = "python host/run_vector_tb.py"
+description = "Check vector-unit backpressure, operand capture, masks and reset"
+
+[tasks._test-kernel]
+cmd = "python host/run_kernel.py"
+description = "Check the kernel engine: instructions, COPY and FILL, vector and tensor-core commands, faults"
+depends-on = ["setup"]
+
+[tasks._test-transformer]
+cmd = "python host/run_transformer.py --transport tsi-sim"
+description = "Run the transformer layer through PyUARTSI against the Verilator model of the SoC"
+depends-on = ["setup"]
+
+[tasks._test-transformer-primitives]
+cmd = "python host/run_transformer_primitives.py"
+description = "Check NVFP4 quantization (QUANT), reciprocal square root, SiLU and absolute value"
+depends-on = ["setup"]
+
+[tasks.transformer]
+cmd = "python host/run_transformer.py --transport fpga"
+description = "Run the transformer layer on the programmed board over UART TSI. Does not build or program"
+
+[tasks.check-transformer-gpu]
+cmd = "python host/run_transformer_primitives.py --gpu cell"
+description = "Compare the transformer primitives and NVFP4 conversion with the RTX 5090 (ssh cell)"
+
+[tasks.check-gpu]
+cmd = "python host/run_compute.py --gpu cell"
+description = "Compare the FP32 ALU and the vector operations with RTX 5090 PTX (ssh cell)"
+
+[tasks.synth-compute]
+cmd = "bash fpga/scripts/vivado.sh fpga/scripts/synth_compute.tcl"
+description = "Estimate the SoC resources and timing after synthesis at 50 MHz, in build/compute_synth/"
+depends-on = ["setup"]
+
+[tasks.lint]
+cmd = "bash fpga/scripts/lint.sh"
+description = "Lint the SoC RTL with Verilator -Wall"
+depends-on = ["setup"]
+
+[tasks.clean]
+cmd = "rm -rf build"
+description = "Delete build/ (Vivado projects, bitstreams, simulation models). Keeps third_party/ and results/"
+
+[tasks.doctor]
+cmd = "bash scripts/doctor.sh"
+description = "Check the environment, the third-party sources, Vivado, the board link and the GPU host"
+
+# Tensor core
+
+[tasks.program]
+args = [{ arg = "design", default = "nvfp4_tsi" }, { arg = "mhz", default = "50" }]
+cmd = "bash fpga/scripts/vivado.sh fpga/scripts/program.tcl $PIXI_PROJECT_ROOT/build/{{ design }}_{{ mhz }}mhz/{{ design }}_{{ mhz }}mhz.bit"
+description = "Load a built bitstream into the FPGA board over JTAG, volatile (default: nvfp4_tsi 50). Does not build"
+
+[tasks.sim]
+cmd = "python host/run_tsi.py --sim"
+description = "Run random tensor-core runs through PyUARTSI against the Verilator model of the SoC (pass -r, --seed, --gpu cell)"
+depends-on = ["setup"]
+
+[tasks.real]
+cmd = "python host/run_tsi.py"
+description = "Run random tensor-core runs through PyUARTSI on the programmed board (pass -r, --seed, --gpu cell). Does not build or program"

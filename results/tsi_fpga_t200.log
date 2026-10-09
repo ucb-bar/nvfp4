@@ -1,0 +1,13 @@
+link checks
+memory read-back
+200 nvfp4 tiles
+  {'chained': 62, 'plain': 81, 'overwrite': 57}
+20 mxfp4 tiles
+  {'overwrite': 7, 'chained': 6, 'plain': 7}
+20 fp4 tiles
+  {'plain': 7, 'overwrite': 6, 'chained': 7}
+20 mxfp4_b16 tiles
+  {'plain': 7, 'chained': 8, 'overwrite': 5}
+343 MATACCs, 43904 dot products in 23.4 s; device == Allegro RTL model on 43904/43904; cycles per MATACC {134: 343}
+RTX 5090 tensor core: device == GPU on 43797/43904 (Allegro RTL model == GPU on 43797/43904; the gap is Allegro's known corner cases)
+PASS

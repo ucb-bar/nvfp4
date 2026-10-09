@@ -1,0 +1,19 @@
+# sashakatne/nvfp4-dotprod-formal-dv (compile order from sim/run.do)
++incdir+third_party/nvfp4-dotprod-formal-dv/ref
+third_party/nvfp4-dotprod-formal-dv/rtl/dotprod_pkg.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/front_end_int8.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/mul_lane.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/align_to_fixed.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/exact_acc_tree.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/final_round.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/front_end_bf16.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/mul_lane_bf16.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/align_bf16.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/special_case_bf16.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/final_round_bf16.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/front_end_nvfp4.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/mul_lane_nvfp4.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/align_nvfp4.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/scale_mul_nvfp4.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/final_round_nvfp4.sv
+third_party/nvfp4-dotprod-formal-dv/rtl/dotprod_top.sv

@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-02",
+  "tool": "Vivado 2024.2",
+  "part": "xc7a100tfgg484-1",
+  "stage": "post-synthesis",
+  "clock_mhz": 50,
+  "luts": 41298,
+  "flip_flops": 12249,
+  "ramb18": 66,
+  "dsps": 36,
+  "wns_ns": 6.514
+}

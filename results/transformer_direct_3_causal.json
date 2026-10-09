@@ -1,0 +1,20 @@
+{
+  "seed": 3,
+  "causal": true,
+  "instructions": 4071,
+  "scratch_bytes": 108928,
+  "cycles": 208804,
+  "stage_max_abs_error": {
+    "norm1": 4.76837158203125e-07,
+    "q": 0.0,
+    "k": 0.0,
+    "v": 0.0,
+    "attention": 5.960464477539063e-08,
+    "residual": 0.0,
+    "norm2": 2.384185791015625e-07,
+    "up": 0.0,
+    "gate": 5.960464477539063e-08,
+    "output": 0.0
+  },
+  "transport": "direct"
+}

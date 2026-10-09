@@ -1,0 +1,5 @@
+`verilator_config
+// The third-party RTL is not ours to fix: lint only the workspace sources.
+lint_off -file "*third_party/*"
+// exact_acc_tree keeps its adder levels in one array; Verilator reports it as a combinational loop.
+lint_off -rule UNOPTFLAT -file "*third_party/nvfp4-dotprod-formal-dv/rtl/exact_acc_tree.sv"

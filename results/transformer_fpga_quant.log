@@ -1,0 +1,4 @@
+Compiled 4071 instructions; 108928 scratch bytes
+Transformer seed=3 causal=True: PASS, 139244 cycles, output max abs error 0
+Compiled 4071 instructions; 108928 scratch bytes
+Transformer seed=11 causal=False: PASS, 140924 cycles, output max abs error 0

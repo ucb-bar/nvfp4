@@ -1,0 +1,13 @@
+{
+  "primitive_rne_ulp": [
+    1,
+    1
+  ],
+  "matrix": {
+    "runs": 18,
+    "outputs": 6016
+  },
+  "attention": {
+    "fp64_max_absolute_error": 1.0830103380765621e-07
+  }
+}

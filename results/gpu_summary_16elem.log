@@ -1,0 +1,20 @@
+### dotprod_formal -n 100000 --seed 11 --fpga-out results/dotprod_formal_s11.out --save results/gpu_dotprod_formal_diff.json
+dotprod_formal: 100008 vectors on the tensor core (0 with inconsistent outputs)
+  GPU == exact model              and GPU == FPGA: 100008
+### vortex_fedp -n 100000 --seed 13 --fpga-out results/vortex_fedp_s13.out --save results/gpu_vortex_fedp_diff.json
+vortex_fedp: 100008 vectors on the tensor core (0 with inconsistent outputs)
+  GPU == Vortex RTL               and GPU == FPGA: 19153
+  GPU != Vortex RTL               and GPU != FPGA: 80855
+    case 1: gpu=4cdc8000 golden=00000000 fpga=00000000  a=7777777777777777 b=7777777777777777 sa=0x7e sb=0x7e c=0x00000000
+    case 2: gpu=ccdc8000 golden=00000000 fpga=00000000  a=7777777777777777 b=ffffffffffffffff sa=0x7e sb=0x7e c=0x00000000
+    case 3: gpu=41880000 golden=3f800000 fpga=3f800000  a=2222222222222222 b=2222222222222222 sa=0x38 sb=0x38 c=0x3f800000
+    case 6: gpu=3d000000 golden=00000000 fpga=00000000  a=2222222222222222 b=2222222222222222 sa=0x01 sb=0x38 c=0x00000000
+    case 7: gpu=7fffffff golden=00000000 fpga=00000000  a=2222222222222222 b=2222222222222222 sa=0x7f sb=0x38 c=0x00000000
+    case 8: gpu=c4bb474e golden=c153a600 fpga=c153a600  a=e824804d09624574 b=ff7fff7fffff7ff7 sa=0x57 sb=0x53 c=0xc153a72c
+    case 9: gpu=40610000 golden=00000000 fpga=00000000  a=ffffffffffffffff b=8ef471d0ced24b67 sa=0x2f sb=0x32 c=0x00000000
+    case 10: gpu=c7d724f4 golden=40c2c000 fpga=40c2c000  a=bbbbbbbbbbbbbbbb b=25735695ab116f74 sa=0x71 sb=0x5a c=0x40c2ca3c
+    case 11: gpu=43dec000 golden=00000000 fpga=00000000  a=ff4aa01bf289d394 b=d97b7d86d845c196 sa=0x7c sb=0x0b c=0x00000000
+    case 13: gpu=c3822a63 golden=c14d4c70 fpga=c14d4c70  a=4311c6e77168b2bf b=bbbbbbbbbbbbbbbb sa=0x38 sb=0x57 c=0xc14d4c7a
+    case 14: gpu=3e34fc00 golden=00000000 fpga=00000000  a=ffffff777f7ff7f7 b=8df5db77a88009e4 sa=0x0b sb=0x15 c=0x00000000
+    case 15: gpu=4005d687 golden=3fc9ad0c fpga=3fc9ad0c  a=0098090180088900 b=8190180098190818 sa=0x3b sb=0x3c c=0x3fc9ad0f
+  GPU == exact fused dot product (single RNE): 84780/100008

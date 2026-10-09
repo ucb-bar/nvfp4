@@ -1,0 +1,25 @@
+NVIDIA GeForce RTX 5090 sm_120, 170 SMs
+warps  1  ilp 1  cycles/mma/warp   29.83  MAC/clk/SM   274.6
+warps  1  ilp 2  cycles/mma/warp   17.78  MAC/clk/SM   460.7
+warps  1  ilp 4  cycles/mma/warp   16.45  MAC/clk/SM   497.9
+warps  1  ilp 8  cycles/mma/warp   16.21  MAC/clk/SM   505.4
+warps  2  ilp 1  cycles/mma/warp   29.75  MAC/clk/SM   550.7
+warps  2  ilp 2  cycles/mma/warp   17.74  MAC/clk/SM   923.5
+warps  2  ilp 4  cycles/mma/warp   16.43  MAC/clk/SM   997.0
+warps  2  ilp 8  cycles/mma/warp   16.20  MAC/clk/SM  1011.3
+warps  4  ilp 1  cycles/mma/warp   29.75  MAC/clk/SM  1101.4
+warps  4  ilp 2  cycles/mma/warp   17.74  MAC/clk/SM  1847.2
+warps  4  ilp 4  cycles/mma/warp   16.43  MAC/clk/SM  1994.1
+warps  4  ilp 8  cycles/mma/warp   16.20  MAC/clk/SM  2022.6
+warps  8  ilp 1  cycles/mma/warp   32.70  MAC/clk/SM  2004.5
+warps  8  ilp 2  cycles/mma/warp   32.47  MAC/clk/SM  2018.5
+warps  8  ilp 4  cycles/mma/warp   32.20  MAC/clk/SM  2035.0
+warps  8  ilp 8  cycles/mma/warp   32.10  MAC/clk/SM  2041.5
+warps 16  ilp 1  cycles/mma/warp   65.13  MAC/clk/SM  2012.4
+warps 16  ilp 2  cycles/mma/warp   64.68  MAC/clk/SM  2026.6
+warps 16  ilp 4  cycles/mma/warp   64.33  MAC/clk/SM  2037.4
+warps 16  ilp 8  cycles/mma/warp   64.17  MAC/clk/SM  2042.6
+warps 32  ilp 1  cycles/mma/warp  130.24  MAC/clk/SM  2012.8
+warps 32  ilp 2  cycles/mma/warp  129.31  MAC/clk/SM  2027.3
+warps 32  ilp 4  cycles/mma/warp  128.66  MAC/clk/SM  2037.5
+warps 32  ilp 8  cycles/mma/warp  128.34  MAC/clk/SM  2042.6

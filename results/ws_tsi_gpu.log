@@ -1,0 +1,24 @@
+link checks
+2 x 8 units, tile up to 64 x 64 x 256
+memory read-back
+  run  0: 64 x 64 x 256 nvfp4     accumulate  2560 cycles
+  run  1: 64 x 64 x 256 nvfp4     accumulate  2560 cycles
+2 runs, 8192 outputs, 2097152 MACs in 44.1 s; device == integer dot-product model on 8192/8192
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+RTX 5090 tensor core: device == GPU on 8192/8192 (integer dot-product model == GPU on 8192/8192)
+PASS

@@ -1,0 +1,8 @@
+/dev/serial/by-id/usb-Xilinx_SophiaLake_Bringup_Platform_Q4FSQ41IV6-if01-port0: {'id': b'VXF4', 'in_bytes': 23, 'out_bytes': 4, 'clk_mhz': 50, 'flags': 0}
+100008 vectors in 25.1 s (3990/s over UART); golden gen 0.8 s, check 1.9 s; harness flags=0x00
+vortex_fedp: 100008/100008 results, 0 mismatches, latency cycles {6: 100008}
+  RTL vs exact fused dot product (single RNE), by scale class:
+    normal    {'exact': 8126, '>2^10 ulp': 57625, '<=2^10 ulp': 1421, '1 ulp': 202, '<=4 ulp': 207}
+    subnormal {'>2^10 ulp': 15882, '<=2^10 ulp': 1029, 'exact': 2695, '1 ulp': 101, '<=4 ulp': 104}
+    zero      {'exact': 8495, '>2^10 ulp': 1080, '<=2^10 ulp': 512, '1 ulp': 303, '<=4 ulp': 239}
+    nan       {'nan-mismatch': 1968, 'exact': 19}

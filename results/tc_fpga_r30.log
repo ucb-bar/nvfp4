@@ -1,0 +1,36 @@
+link checks
+2 x 4 units, tile up to 64 x 64 x 256
+memory read-back
+  run  0: 64 x 64 x 256 nvfp4     overwrite  2076 cycles
+  run  1: 64 x 64 x 256 nvfp4     overwrite  2076 cycles
+  run  2: 26 x 48 x 128 nvfp4     overwrite   326 cycles
+  run  3:  8 x 40 x  64 mxfp4_b16 accumulate    47 cycles
+  run  4: 64 x 16 x 256 nvfp4     accumulate   540 cycles
+  run  5: 64 x 64 x 256 nvfp4     accumulate  2076 cycles
+  run  6: 64 x 64 x 256 nvfp4     continue   2076 cycles
+  run  7: 24 x 64 x  64 fp4       overwrite   199 cycles
+  run  8:  4 x 40 x 256 nvfp4     accumulate   108 cycles
+  run  9: 64 x 64 x 256 nvfp4     accumulate  2076 cycles
+  run 10: 64 x 64 x 256 nvfp4     accumulate  2076 cycles
+  run 11: 38 x 60 x  64 fp4       accumulate   292 cycles
+  run 12:  8 x 40 x 128 nvfp4     overwrite    94 cycles
+  run 13: 14 x 48 x  64 nvfp4     overwrite    91 cycles
+  run 14: 44 x 16 x 256 nvfp4     accumulate   380 cycles
+  run 15: 42 x 52 x 192 mxfp4_b16 accumulate   840 cycles
+  run 16: 64 x 64 x 256 nvfp4     accumulate  2076 cycles
+  run 17: 18 x 56 x 256 nvfp4     accumulate   532 cycles
+  run 18: 14 x 36 x 128 nvfp4     accumulate   140 cycles
+  run 19: 14 x 28 x 256 fp4       overwrite   224 cycles
+  run 20:  8 x 36 x 192 nvfp4     overwrite   129 cycles
+  run 21: 64 x 56 x  64 nvfp4     overwrite   455 cycles
+  run 22: 50 x 52 x 128 nvfp4     overwrite   664 cycles
+  run 23: 22 x 12 x 128 mxfp4_b16 accumulate    80 cycles
+  run 24: 44 x 56 x 256 nvfp4     accumulate  1260 cycles
+  run 25:  2 x 64 x  64 nvfp4     overwrite    23 cycles
+  run 26: 48 x 28 x  64 nvfp4     accumulate   175 cycles
+  run 27: 56 x 52 x 128 fp4       overwrite   742 cycles
+  run 28: 38 x 36 x 128 nvfp4     overwrite   356 cycles
+  run 29: 54 x 16 x  64 nvfp4     overwrite   115 cycles
+30 runs, 56840 outputs, 11153408 MACs in 20.6 s; device == Allegro RTL model on 56840/56840
+RTX 5090 tensor core: device == GPU on 56576/56840 (Allegro RTL model == GPU on 56576/56840)
+PASS

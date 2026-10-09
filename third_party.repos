@@ -1,0 +1,13 @@
+repositories:
+  Allegro:
+    type: git
+    url: https://github.com/roundandr/Allegro.git
+    version: ac5b2a41e476bf9d9ca4dbe1f8df65ed2f07d36c
+  nvfp4-dotprod-formal-dv:
+    type: git
+    url: https://github.com/sashakatne/nvfp4-dotprod-formal-dv.git
+    version: 125db5918dee0c4b69a031d4cd52a6bd96bc1725
+  vortex:
+    type: git
+    url: https://github.com/vortexgpgpu/vortex.git
+    version: b8c5a24336026d9d029a67197160eee6b017f262

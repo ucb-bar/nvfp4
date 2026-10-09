@@ -1,0 +1,3 @@
+Kernel vector ADD, DMA, loop, LOAD/STORE and FILL: PASS (267 cycles)
+Kernel NVFP4 matmul and result DMA: PASS (482 cycles)
+Kernel fault reporting and recovery: PASS

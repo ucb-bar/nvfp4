@@ -1,0 +1,12 @@
+# Generated: Vivado projects, bitstreams, simulation models (pixi run clean)
+build/
+# Environment and third-party RTL (pixi install, pixi run setup)
+.pixi/
+third_party/
+# Release archives (published as release assets)
+dist/
+__pycache__/
+# Duplicate of tcgen05/vectors/
+tcgen05/vectors.zip
+# Raw 34 MB disagreement dump; run_gpu.py regenerates it
+results/gpu_vortex_fedp_diff.json

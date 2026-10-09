@@ -1,0 +1,13 @@
+directed                     9 vectors: RTL == model       9
+allegro_mx16_s8          13359 vectors: RTL == model   13359   RTL == silicon   13359   model == silicon   13359
+allegro_mx32_s8           6641 vectors: RTL == model    6641   RTL == silicon    6640   model == silicon    6640
+    RTL != silicon by situation: {'other': 1}
+allegro_nvfp4_s7        100009 vectors: RTL == model  100009   RTL == silicon  100009   model == silicon  100009
+dotprod_formal_s11      100008 vectors: RTL == model  100008   RTL == silicon  100008   model == silicon  100008
+vortex_fedp_s13         100008 vectors: RTL == model  100008   RTL == silicon  100008   model == silicon  100008
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 25011 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 1, 49922 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 25067 vectors
+random_seed1            100000 vectors: RTL == model  100000   RTL == silicon   99998   model == silicon   99998
+    RTL != silicon by situation: {'some 16-block all zero': 2}
+PASS

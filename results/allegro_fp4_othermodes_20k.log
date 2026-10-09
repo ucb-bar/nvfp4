@@ -1,0 +1,4 @@
+/dev/serial/by-id/usb-Xilinx_SophiaLake_Bringup_Platform_Q4FSQ41IV6-if01-port0: {'id': b'ALG4', 'in_bytes': 77, 'out_bytes': 4, 'clk_mhz': 50, 'flags': 0}
+20009 vectors in 16.3 s (1231/s over UART); golden gen 0.5 s, check 1.7 s; harness flags=0x00
+allegro_fp4: 20009/20009 results, 1 mismatches, latency cycles {6: 20009}
+  case 17451: got 800b7fff want 800b8000  mode=1 a=3e79c37d229fe96f3faa4728cb860534844028beb0ecf1ffcdce012e8bd04f6a b=ffb7486ff221c86f4b2651e2fd2290d730d5a9d63049d42b0c46d00dbf3e9ac9 sa=564680a4 sb=240d5e76 c=0x00000000

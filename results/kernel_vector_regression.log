@@ -1,0 +1,5 @@
+PASS vector capture, backpressure, empty masks, reset
+- /home/tk/Desktop/NVFP4/fpga/sim/tb_vector.sv:58: Verilog $finish
+- S i m u l a t i o n   R e p o r t: Verilator 5.052 2026-09-05
+- Verilator: $finish at 1us; walltime 0.000 s; speed 16.601 ms/s
+- Verilator: cpu 0.000 s on 1 threads; allocated 4 MB

@@ -1,0 +1,122 @@
+✨ Pixi task (real): python host/run_tsi.py -r 30 --seed 7 --gpu cell --port /dev/serial/by-id/usb-Xilinx_SophiaLake_Bringup_Platform_Q4FSQ41IV6-if01-port0: (Run random tensor-core runs through PyUARTSI on the programmed board (pass -r, --seed, --gpu cell). Does not build or program)
+link checks
+2 x 4 units, tile up to 64 x 64 x 256
+memory read-back
+  run  0: 64 x 64 x 256 nvfp4     accumulate  2560 cycles
+  run  1: 64 x 64 x 256 nvfp4     accumulate  2560 cycles
+  run  2: 24 x 64 x  32 nvfp4     overwrite   320 cycles
+  run  3: 54 x 28 x 192 fp4       accumulate   735 cycles
+  run  4: 28 x 24 x  32 nvfp4     accumulate   132 cycles
+  run  5: 14 x 52 x  64 nvfp4     accumulate   195 cycles
+  run  6: 18 x 64 x  64 nvfp4     accumulate   272 cycles
+  run  7: 10 x 16 x 128 mxfp4     accumulate   104 cycles
+  run  8: 28 x 44 x 128 nvfp4     overwrite   484 cycles
+  run  9: 64 x 64 x 256 nvfp4     overwrite  2560 cycles
+  run 10: 64 x 64 x 256 nvfp4     overwrite  2560 cycles
+  run 11: 26 x 60 x 192 mxfp4     accumulate   945 cycles
+  run 12: 42 x 44 x  96 nvfp4     overwrite   638 cycles
+  run 13: 64 x 64 x 256 nvfp4     overwrite  2560 cycles
+  run 14: 60 x 52 x  32 nvfp4     overwrite   494 cycles
+  run 15: 22 x 12 x 192 fp4       accumulate   171 cycles
+  run 16: 28 x 12 x  64 nvfp4     accumulate    66 cycles
+  run 17: 52 x 64 x 224 nvfp4     overwrite  2176 cycles
+  run 18: 50 x 24 x 224 nvfp4     overwrite   792 cycles
+  run 19: 12 x 36 x  96 mxfp4     accumulate   252 cycles
+  run 20: 64 x 64 x 256 nvfp4     overwrite  2560 cycles
+  run 21: 42 x  4 x 256 nvfp4     accumulate   116 cycles
+  run 22: 64 x 64 x 256 nvfp4     accumulate  2560 cycles
+  run 23: 10 x 60 x  96 mxfp4     overwrite   390 cycles
+  run 24: 30 x 60 x 192 nvfp4     overwrite  1035 cycles
+  run 25: 16 x 56 x 256 nvfp4     accumulate   896 cycles
+  run 26: 60 x 36 x 256 nvfp4     overwrite  1368 cycles
+  run 27: 40 x 16 x  64 mxfp4     overwrite   112 cycles
+  run 28: 64 x 36 x 256 nvfp4     accumulate  1440 cycles
+  run 29: 64 x 64 x 256 nvfp4     overwrite  2560 cycles
+30 runs, 60416 outputs, 12612096 MACs in 20.7 s; device == integer dot-product model on 60416/60416
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1536 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 1, 1512 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 1, 1512 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 1, 1512 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 672 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 728 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1152 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 160 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 160 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1232 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1232 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 1560 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 1560 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 1560 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1848 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1848 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 3120 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 1, 264 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 1, 264 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 1, 264 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 336 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 3328 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 3328 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 3328 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 3328 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1200 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1200 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1200 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1200 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 432 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 432 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 168 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 168 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 168 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 168 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 600 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 600 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1800 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1800 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 1800 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 896 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 896 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 896 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 896 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 2160 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 2160 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 2160 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 2160 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 2, 640 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 2304 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 2304 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 2304 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 2304 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+NVIDIA GeForce RTX 5090 sm_120: kind 0, 4096 vectors
+RTX 5090 tensor core: device == GPU on 60416/60416 (integer dot-product model == GPU on 60416/60416)
+PASS

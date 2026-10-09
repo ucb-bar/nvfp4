@@ -1,0 +1,1573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NVFP4 Tensor Core on FPGA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=Inconsolata:wght@400;600&family=STIX+Two+Text:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+  /* Layout: one 44rem text column set like a typeset paper (indented paragraphs, run-in headings,
+     booktabs tables); figures and tables may widen to 58rem, as a figure* spans both columns.
+     Single light theme on white paper, in every viewer theme. */
+  :root {
+    color-scheme: light;
+    --paper: #ffffff;
+    --ink: #17191e;
+    --muted: #5b606b;
+    --rule: #c7cad1;
+    --fill: #eceef2;
+    --hl: #e4f1ec;
+    --accent: #0f6e55;
+    --a: #2c64ad;
+    --b: #8c3f8a;
+    --c: #a8611a;
+    --term: #557396;
+    --serif: "STIX Two Text", "STIX Two", "Times New Roman", Times, serif;
+    --sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    --mono: "Inconsolata", "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  body { background: var(--paper); color: var(--ink); font: 17px/1.55 var(--serif); padding-inline: 16px; }
+  .page { max-width: 58rem; margin-inline: auto; padding-block: 36px 72px; }
+  .page > * { max-width: 44rem; margin-inline: auto; }
+  .page > .wide { max-width: 58rem; }
+  .page > * + * { margin-block-start: 0.9rem; }
+  .page > p + p { margin-block-start: 0; text-indent: 1.4em; }
+  .page > .lede + p { text-indent: 0; }
+  .page > h2 { margin-block-start: 2.4rem; }
+  .page > h3 { margin-block-start: 1.6rem; }
+  .page > figure, .page > .eq { margin-block: 1.5rem; }
+  p { margin: 0; }
+  @media (min-width: 640px) { .page > p { text-align: justify; hyphens: auto; } }
+
+  .runhead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px;
+    font: 13px/1.4 var(--serif); font-variant: small-caps; letter-spacing: 0.04em; color: var(--muted);
+    border-bottom: 0.8px solid var(--rule); padding-block-end: 6px; }
+  h1 { font: 700 30px/1.2 var(--serif); margin: 0; text-wrap: balance; }
+  h1 .num, h2 .num { display: inline-block; min-width: 2.2em; }
+  h2 { font: 700 21px/1.3 var(--serif); margin: 0; text-wrap: balance; }
+  .lede { font-style: italic; color: var(--muted); }
+  .run { font-weight: 700; }
+  a { color: var(--accent); text-decoration-thickness: 0.06em; text-underline-offset: 0.15em; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  code { font: 0.95em var(--mono); }
+  sub, sup { line-height: 0; }
+
+  /* Display equations, numbered at the right margin */
+  .eq { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; overflow-x: auto; }
+  .eq math { font-size: 1.08em; min-width: 0; }
+  .eqn { font-variant-numeric: lining-nums; }
+  math { font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", var(--serif); }
+  mtd { text-align: left; padding-inline-end: 1.2em; padding-block: 1px; }
+
+  /* Figures and tables */
+  figure { margin: 0; }
+  figcaption { font-size: 15px; line-height: 1.45; }
+  figure:not(.table):not(.alg) figcaption { margin-block-start: 10px; }
+  .cap { font-weight: 700; }
+  .fig { overflow-x: auto; }
+  .fig svg { display: block; width: 100%; height: auto; min-width: 680px; color: var(--ink); }
+  .table figcaption { margin-block-end: 8px; }
+  .tbl { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font: 15px/1.4 var(--serif); font-variant-numeric: lining-nums tabular-nums; }
+  thead th { font-weight: 600; text-align: left; border-block-start: 1.5px solid var(--ink); border-block-end: 0.8px solid var(--ink); padding: 6px 14px 5px 0; vertical-align: bottom; }
+  td { padding: 4px 14px 4px 0; vertical-align: top; }
+  tbody tr:last-child td { border-block-end: 1.5px solid var(--ink); }
+  tbody tr.mid td { border-block-start: 0.8px solid var(--rule); }
+  td.r, th.r { text-align: right; }
+  td.nw { white-space: nowrap; }
+
+  /* Algorithm block, set in the algorithm2e manner */
+  .alg { border-block: 1.5px solid var(--ink); padding-block: 4px 6px; }
+  .alg figcaption { border-block-end: 0.8px solid var(--ink); padding-block: 2px 5px; margin: 0; }
+  .alg ol { list-style: none; counter-reset: ln; margin: 6px 0 0; padding: 0; font-size: 15.5px; line-height: 1.5; }
+  .alg li { counter-increment: ln; position: relative; padding-inline-start: calc(2.4em + var(--d, 0) * 1.4em); }
+  .alg li::before { content: counter(ln); position: absolute; inset-inline-start: 0; width: 1.6em; text-align: right; color: var(--muted); font-size: 13px; }
+  .alg .cm { color: var(--muted); font-style: italic; white-space: nowrap; }
+  .alg .kw { font-weight: 700; }
+
+  /* Diagrams: line art, operand colors only where an operand flows */
+  .dg { font-family: var(--sans); }
+  .dg text { font-size: 12px; fill: var(--ink); }
+  .dg .lbl { font-weight: 600; font-size: 13px; }
+  .dg .mono { font-family: var(--mono); font-size: 13px; }
+  .dg .sm { font-size: 11px; }
+  .dg .dim { fill: var(--muted); }
+  .dg .sub { font-size: 9px; }
+  .dg .box { fill: var(--paper); stroke: var(--ink); stroke-width: 1; }
+  .dg .shade { fill: var(--fill); stroke: var(--ink); stroke-width: 1; }
+  .dg .pe { fill: var(--hl); stroke: var(--accent); stroke-width: 1.5; }
+  .dg .reg { fill: var(--fill); stroke: var(--muted); stroke-width: 0.8; }
+  .dg .chip { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 5 4; }
+  .dg .edge { fill: none; stroke: var(--ink); stroke-width: 1.1; }
+  .dg .flag { fill: none; stroke: var(--muted); stroke-width: 1.1; stroke-dasharray: 4 3; }
+  .dg .ah { fill: var(--ink); }
+  .dg .ahc { fill: var(--c); }
+  .dg .la { fill: none; stroke: var(--a); stroke-width: 3; }
+  .dg .lb { fill: none; stroke: var(--b); stroke-width: 3; }
+  .dg .lc { fill: none; stroke: var(--c); stroke-width: 1.6; }
+  .dg .ta { fill: var(--a); }
+  .dg .tb { fill: var(--b); }
+  .dg .tc { fill: var(--c); }
+  .dg .tp { fill: var(--accent); }
+  .dg .term { fill: var(--term); }
+  .dg .cterm { fill: var(--c); }
+  .dg .hatchbg { fill: var(--paper); }
+  .dg .hatchln { stroke: var(--muted); stroke-width: 1; }
+  .dg .hatch { stroke: var(--muted); stroke-width: 0.6; }
+  .dg .cut { stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 5 3; }
+  .dg .axis { stroke: var(--ink); stroke-width: 1; }
+  .dg .grid { stroke: var(--rule); stroke-width: 1; }
+  .dg .bar { fill: var(--accent); }
+  .dg .drain { fill: var(--c); }
+  .dg .onbar { fill: var(--paper); font-weight: 600; }
+  .dg .ea { fill: none; stroke: var(--a); stroke-width: 1.6; }
+  .dg .eb { fill: none; stroke: var(--b); stroke-width: 1.6; }
+  .dg .aha { fill: var(--a); }
+  .dg .ahb { fill: var(--b); }
+  .dg .fld { fill: var(--hl); stroke: var(--accent); stroke-width: 1; }
+  .dg .bit { fill: var(--paper); stroke: var(--rule); stroke-width: 0.8; }
+  .dg .op { font-size: 22px; }
+
+  ol.refs { margin: 0; padding-inline-start: 2.2em; display: grid; gap: 6px; font-size: 15px; line-height: 1.45; }
+  ol.refs li::marker { content: "[" counter(list-item) "]  "; }
+  .refs a { word-break: break-word; }
+  footer { font-size: 14px; color: var(--muted); border-block-start: 0.8px solid var(--rule); padding-block-start: 10px; }
+
+  /* Additions: title block, abstract, plain-language leads, extra diagram fills */
+  body { margin: 0; }
+  .page > h1 { margin-block-start: 1.2rem; }
+  .byline { font-size: 15px; color: var(--muted); }
+  .abstract { border-block: 0.8px solid var(--rule); padding-block: 10px 12px; font-size: 16px; }
+  .abstract p { text-align: justify; hyphens: auto; }
+  .page > h3 { font: 700 18px/1.3 var(--serif); }
+  h3 .num { display: inline-block; min-width: 2.6em; }
+  .page > .lede { text-indent: 0; }
+  .page > .lede + p { text-indent: 0; margin-block-start: 0.6rem; }
+  .page > h2 + p, .page > h3 + p { text-indent: 0; }
+  .dg .dot { fill: var(--accent); }
+  .dg .ahp { fill: var(--accent); }
+  .dg .beat { fill: none; stroke: var(--ink); stroke-width: 2.4; }
+  .dg .vp { fill: none; stroke: var(--accent); stroke-width: 2.4; }
+  .dg .fa { fill: var(--a); }
+  .dg .fb { fill: var(--b); }
+  .dg .fc { fill: var(--c); }
+  .dg .fo { fill: var(--rule); }
+  .dg .hatchw { stroke: var(--paper); stroke-width: 1.4; }
+</style>
+</head>
+<body>
+<article class="page">
+  <div class="runhead"><span>NVFP4 Tensor Core on FPGA</span><span>Release 1.0.0 · 8 October 2026</span></div>
+
+  <h1>A bit-exact NVFP4 tensor core and transformer engine on a small FPGA</h1>
+  <p class="byline">NVFP4 workspace, release 1.0.0. The text, figures and numbers describe the RTL and the board measurements of this release.</p>
+
+  <div class="abstract">
+    <p><span class="run">Abstract.</span> NVIDIA's Blackwell GPUs multiply matrices of 4-bit NVFP4 numbers in dedicated tensor cores, but NVIDIA does not publish the exact arithmetic of these units. We measure that arithmetic on two GPUs and build an open tensor core on an AMD Artix-7 FPGA whose results equal the GPU's bit for bit. The tensor core does 512 multiply-accumulates per cycle at 50&nbsp;MHz in a 2 × 64 × 4 grid, with four 4-bit products packed into each DSP slice. An eight-lane FP32 vector unit adds softmax, normalization, activations and NVFP4 quantization, and a small programmable engine sequences the units without the host. Together they run a complete transformer layer (RMSNorm, FlashAttention and SwiGLU, 16 tokens) on the board in 139,244 cycles (2.8&nbsp;ms). On the board, 60,416 of 60,416 tensor-core outputs equal those of an RTX&nbsp;5090.</p>
+  </div>
+
+  <!-- ===================================================================== 1 -->
+  <h2 id="intro"><span class="num">1</span>Introduction</h2>
+
+  <p>Neural networks spend most of their arithmetic in matrix multiplication, and the cost of each multiplication falls with the number of bits per operand. Recent GPUs therefore multiply 4-bit numbers. NVIDIA's NVFP4 format stores each element in 4 bits and gives each group of 16 elements a shared 8-bit scale <a href="#r3">[3]</a>. Its tensor cores multiply such matrices and add the products into 32-bit floating-point (FP32) accumulators.</p>
+  <p>NVIDIA documents the formats and the instructions, but not the order in which a tensor core adds the products or where it rounds. These details decide the last bits of every result. A hardware design, a simulator or a numerical study that ignores them gives results that differ from the GPU in ways that are hard to explain. We take the rounding behavior from silicon, write it down as a precise contract, and build hardware that follows it exactly.</p>
+  <p>The hardware runs on an inexpensive test board with an AMD Artix-7 FPGA. A host computer controls it through a serial link. This document describes the complete design, and it is written so that a reader from outside computer architecture can follow it. §2 explains the background: floating-point rounding, 4-bit block-scaled numbers, tensor cores and FPGAs. §3 gives the system organization. §4 defines the arithmetic that the tensor core must reproduce, and §5 describes the tensor core. §6 describes the vector unit, and §7 the programmable engine and the transformer layer that it runs. §8 gives the verification method, §9 the cost and speed, and §10 the limitations.</p>
+  <p><span class="run">Contributions.</span> (1) A contract for NVFP4 and MXFP4 matrix multiply-accumulate, calibrated on an RTX&nbsp;5090 and a Jetson AGX Thor. The two GPUs agree on all 920,079 test vectors, and the contract matches them on 600,005 of 600,054 random vectors. (2) A tensor core that implements the contract with 512 multiply-accumulates per cycle. It packs four 4-bit products into each multiplier slice of the FPGA, which saves a third of its logic. (3) A vector unit and a programmable engine with which the whole transformer layer runs on the device, with results that match an independent reference model. (4) A verification chain from a numerical model to the board, in which every level is compared with GPU silicon.</p>
+
+  <!-- ===================================================================== 2 -->
+  <h2 id="background"><span class="num">2</span>Background</h2>
+
+  <p class="lede">This section is for readers outside computer architecture. A reader who knows floating point and FPGAs can go to §3.</p>
+
+  <h3 id="bg-matmul"><span class="num">2.1</span>Matrix multiplication</h3>
+  <p>The product <i>C</i> = <i>A</i><i>B</i> of an <i>M</i> × <i>K</i> matrix <i>A</i> and a <i>K</i> × <i>N</i> matrix <i>B</i> has <i>M</i> × <i>N</i> entries. Each entry is a dot product of length <i>K</i>: <i>C<sub>ij</sub></i> = Σ<sub><i>k</i></sub> <i>A<sub>ik</sub></i> <i>B<sub>kj</sub></i>. One multiplication and one addition form a multiply-accumulate (MAC), so the product takes <i>M N K</i> MACs. A 64 × 256 by 256 × 64 product, the largest tile of our tensor core, takes 1,048,576 MACs. Hardware for matrix multiplication is fast when it does many MACs in parallel and when it reuses each operand that it reads from memory for many MACs. In a transformer, the layer that we run in §7, the matrix products compute the queries, keys and values, the attention scores, and the feed-forward network.</p>
+
+  <h3 id="bg-float"><span class="num">2.2</span>Floating-point numbers and rounding</h3>
+  <p>A floating-point number stores a sign, an exponent and a significand: <i>x</i> = (−1)<sup><i>s</i></sup> × 1.<i>f</i> × 2<sup><i>e</i></sup>. FP32 <a href="#r11">[11]</a> uses 1 sign bit, 8 exponent bits and 23 fraction bits, so neighboring FP32 numbers differ by about one part in 2<sup>24</sup> of their size. This spacing is one unit in the last place (ULP). The exact result of an operation is usually not an FP32 number, so the hardware rounds it. Round-to-nearest-even (RNE) picks the nearest FP32 number and breaks ties toward an even last bit. Round-toward-zero (RZ) cuts off the extra bits.</p>
+  <p>Because every operation rounds, the order of operations changes the result. In FP32, 2<sup>24</sup> + 1 lies exactly between 2<sup>24</sup> and 2<sup>24</sup> + 2, and RNE rounds it down to 2<sup>24</sup>. Thus (2<sup>24</sup> + 1) + 1 gives 2<sup>24</sup>, but 2<sup>24</sup> + (1 + 1) gives 2<sup>24</sup> + 2. Two designs that add the same 64 products in a different order, or round at different points, can therefore return different bits. “Bit-exact” in this document means that our hardware returns the same 32 bits as the GPU for every input. For that, it must reproduce the order and the rounding points of the GPU, not only the mathematical result.</p>
+
+  <h3 id="bg-nvfp4"><span class="num">2.3</span>Four-bit numbers with block scales</h3>
+  <p>A 4-bit E2M1 number has 1 sign bit, 2 exponent bits and 1 mantissa bit. Its 16 codes give only 15 values: 0, ±0.5, ±1, ±1.5, ±2, ±3, ±4 and ±6 (<a href="#fig1">Figure 1</a>a). To store real data in this set, we divide the data by a scale so that the largest magnitudes land near 6, and round each quotient to the nearest E2M1 value. One scale for a whole tensor fits its largest values but wastes the few available values on the small ones. Block scaling solves this. NVFP4 gives each block of 16 consecutive elements its own scale, stored as an 8-bit UE4M3 number (an unsigned float with 4 exponent and 3 mantissa bits, up to 448), and adds one FP32 scale for the whole tensor <a href="#r3">[3]</a> (<a href="#fig1">Figure 1</a>b). An element then costs 4.5 bits on average. MXFP4, an open standard <a href="#r2">[2]</a>, is similar but uses one power-of-two (E8M0) scale per 32 elements.</p>
+  <p>The product of two NVFP4 elements is the product of the two E2M1 values times the two block scales. A 64-element dot product thus has four blocks of 16 products, and each block has its own pair of scales. The tensor scales are applied once, after the matrix product.</p>
+
+  <figure class="wide" id="fig1">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 920 290" role="img" aria-label="(a) A number line from minus 6 to 6 with dots at the 15 E2M1 values: 0, plus or minus 0.5, 1, 1.5, 2, 3, 4 and 6, and the 4-bit codes 0000 to 0111 under the positive values. (b) Sixteen element cells with the values 1.5, −0.5, 6, 0, 2, −3, 1, 0.5, −1, 4, 0, −2, 3, 1.5, −6 and 1, then one block scale cell of 0.5 and one tensor scale cell of 1.">
+        <text class="lbl" x="10" y="22">a</text><text x="26" y="22">E2M1 element: 1 sign bit, 2 exponent bits, 1 mantissa bit</text>
+        <line class="axis" x1="60" y1="78" x2="880" y2="78"/>
+        <circle class="dot" cx="60" cy="78" r="4"/><text class="sm" x="60" y="64" text-anchor="middle">−6</text>
+        <circle class="dot" cx="196.7" cy="78" r="4"/><text class="sm" x="196.7" y="64" text-anchor="middle">−4</text>
+        <circle class="dot" cx="265" cy="78" r="4"/><text class="sm" x="265" y="64" text-anchor="middle">−3</text>
+        <circle class="dot" cx="333.3" cy="78" r="4"/><text class="sm" x="333.3" y="64" text-anchor="middle">−2</text>
+        <circle class="dot" cx="367.5" cy="78" r="4"/><text class="sm" x="367.5" y="64" text-anchor="middle">−1.5</text>
+        <circle class="dot" cx="401.7" cy="78" r="4"/><text class="sm" x="401.7" y="64" text-anchor="middle">−1</text>
+        <circle class="dot" cx="435.8" cy="78" r="4"/><text class="sm" x="435.8" y="64" text-anchor="middle">−0.5</text>
+        <circle class="dot" cx="470" cy="78" r="4"/><text class="sm" x="470" y="64" text-anchor="middle">0</text>
+        <circle class="dot" cx="504.2" cy="78" r="4"/><text class="sm" x="504.2" y="64" text-anchor="middle">0.5</text>
+        <circle class="dot" cx="538.3" cy="78" r="4"/><text class="sm" x="538.3" y="64" text-anchor="middle">1</text>
+        <circle class="dot" cx="572.5" cy="78" r="4"/><text class="sm" x="572.5" y="64" text-anchor="middle">1.5</text>
+        <circle class="dot" cx="606.7" cy="78" r="4"/><text class="sm" x="606.7" y="64" text-anchor="middle">2</text>
+        <circle class="dot" cx="675" cy="78" r="4"/><text class="sm" x="675" y="64" text-anchor="middle">3</text>
+        <circle class="dot" cx="743.3" cy="78" r="4"/><text class="sm" x="743.3" y="64" text-anchor="middle">4</text>
+        <circle class="dot" cx="880" cy="78" r="4"/><text class="sm" x="880" y="64" text-anchor="middle">6</text>
+        <text class="mono sm" x="470" y="100" text-anchor="middle">0000</text>
+        <text class="mono sm" x="504.2" y="100" text-anchor="middle">0001</text>
+        <text class="mono sm" x="538.3" y="100" text-anchor="middle">0010</text>
+        <text class="mono sm" x="572.5" y="100" text-anchor="middle">0011</text>
+        <text class="mono sm" x="606.7" y="100" text-anchor="middle">0100</text>
+        <text class="mono sm" x="675" y="100" text-anchor="middle">0101</text>
+        <text class="mono sm" x="743.3" y="100" text-anchor="middle">0110</text>
+        <text class="mono sm" x="880" y="100" text-anchor="middle">0111</text>
+        <text class="sm dim" x="265" y="100" text-anchor="middle">codes 1000 to 1111: the same values, negative</text>
+
+        <text class="lbl" x="10" y="146">b</text><text x="26" y="146">One NVFP4 block: 16 elements share one scale</text>
+        <rect class="box" x="60" y="164" width="36" height="30"/><text x="78" y="184" text-anchor="middle">1.5</text>
+        <rect class="box" x="98" y="164" width="36" height="30"/><text x="116" y="184" text-anchor="middle">−0.5</text>
+        <rect class="box" x="136" y="164" width="36" height="30"/><text x="154" y="184" text-anchor="middle">6</text>
+        <rect class="box" x="174" y="164" width="36" height="30"/><text x="192" y="184" text-anchor="middle">0</text>
+        <rect class="box" x="212" y="164" width="36" height="30"/><text x="230" y="184" text-anchor="middle">2</text>
+        <rect class="box" x="250" y="164" width="36" height="30"/><text x="268" y="184" text-anchor="middle">−3</text>
+        <rect class="box" x="288" y="164" width="36" height="30"/><text x="306" y="184" text-anchor="middle">1</text>
+        <rect class="box" x="326" y="164" width="36" height="30"/><text x="344" y="184" text-anchor="middle">0.5</text>
+        <rect class="box" x="364" y="164" width="36" height="30"/><text x="382" y="184" text-anchor="middle">−1</text>
+        <rect class="box" x="402" y="164" width="36" height="30"/><text x="420" y="184" text-anchor="middle">4</text>
+        <rect class="box" x="440" y="164" width="36" height="30"/><text x="458" y="184" text-anchor="middle">0</text>
+        <rect class="box" x="478" y="164" width="36" height="30"/><text x="496" y="184" text-anchor="middle">−2</text>
+        <rect class="box" x="516" y="164" width="36" height="30"/><text x="534" y="184" text-anchor="middle">3</text>
+        <rect class="box" x="554" y="164" width="36" height="30"/><text x="572" y="184" text-anchor="middle">1.5</text>
+        <rect class="box" x="592" y="164" width="36" height="30"/><text x="610" y="184" text-anchor="middle">−6</text>
+        <rect class="box" x="630" y="164" width="36" height="30"/><text x="648" y="184" text-anchor="middle">1</text>
+        <polyline class="edge" points="60,202 60,208 666,208 666,202"/>
+        <text class="sm" x="363" y="226" text-anchor="middle">16 elements × 4 bits = 8 bytes</text>
+        <rect class="pe" x="686" y="164" width="96" height="30"/><text x="734" y="184" text-anchor="middle">× 0.5</text>
+        <text class="sm" x="734" y="226" text-anchor="middle">block scale</text>
+        <text class="sm dim" x="734" y="242" text-anchor="middle">UE4M3, 1 byte</text>
+        <rect class="shade" x="800" y="164" width="96" height="30"/><text x="848" y="184" text-anchor="middle">× 1</text>
+        <text class="sm" x="848" y="226" text-anchor="middle">tensor scale</text>
+        <text class="sm dim" x="848" y="242" text-anchor="middle">FP32, one per tensor</text>
+        <text x="470" y="278" text-anchor="middle">value = element × block scale × tensor scale,  for example 1.5 × 0.5 × 1 = 0.75</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 1.</span> The NVFP4 format. (a) The 15 values of an E2M1 element, to scale, with the codes of the positive half; a set sign bit makes the value negative. The spacing doubles at each power of two. (b) One block: 16 elements share one UE4M3 scale. One FP32 tensor scale serves the whole tensor. The example block holds the values 0.75, −0.25, 3, … of real data whose largest magnitude is 3.</figcaption>
+  </figure>
+
+  <h3 id="bg-tc"><span class="num">2.4</span>Tensor cores</h3>
+  <p>A GPU tensor core is a unit that executes one small matrix multiply-accumulate per instruction. On the RTX&nbsp;5090, the instruction <code>mma.sync…m16n8k64</code> multiplies a 16 × 64 NVFP4 matrix by a 64 × 8 one and adds the result to a 16 × 8 FP32 accumulator <a href="#r1">[1]</a>. A longer product, for example with <i>K</i> = 256, chains four such instructions: each takes the result of the previous one as its accumulator. The Jetson AGX Thor uses a different instruction family, <code>tcgen05.mma</code>, with the same formats. NVIDIA does not document how these instructions round. A public simulator, MMA-Sim <a href="#r5">[5]</a>, models them, but our measurements found cases in which it disagrees with silicon (§4).</p>
+
+  <h3 id="bg-fpga"><span class="num">2.5</span>FPGAs</h3>
+  <p>A field-programmable gate array (FPGA) is a chip whose circuit is defined after manufacture, by loading a configuration file called a bitstream. Our design is written in SystemVerilog, a hardware description language, and the vendor tool Vivado translates it into a bitstream. The chip provides four kinds of resources (<a href="#tab1">Table 1</a>). Look-up tables (LUTs) implement any logic function of up to six inputs. Flip-flops (FFs) store single bits. Block RAMs store data, 36&nbsp;Kbit each. DSP slices are fixed multiplier-adder circuits. Our Artix-7 <code>xc7a100t</code> has 63,400 LUTs, 126,800 flip-flops, 135 block RAMs and 240 DSP slices <a href="#r10">[10]</a>. These numbers are the budget of the whole design.</p>
+  <p>The circuit runs from a clock at 50&nbsp;MHz. At each clock edge, every register (a group of flip-flops) takes a new value, and the logic between registers must settle within one period of 20&nbsp;ns. The tool reports the worst negative slack (WNS): the margin of the slowest path. A positive WNS means that the design meets the clock. To keep paths short, a long computation is split into stages with registers between them. This is a pipeline: like an assembly line, it starts a new operation every cycle while earlier operations move through the later stages. Its latency is the number of cycles from input to result, and its throughput is the number of operations it starts per cycle.</p>
+
+  <h3 id="bg-mmio"><span class="num">2.6</span>Memory-mapped devices</h3>
+  <p>The units of our design communicate by reads and writes to addresses, as a processor talks to its peripherals. Each unit, called a device, owns a range of addresses. Some addresses are memory: a write stores data and a read returns it. Others are registers with an effect: a write to a control register starts an operation, and a read of a status register shows whether the operation is done. This method is memory-mapped I/O (MMIO). A bus carries the reads and writes. Our bus follows TileLink-UL <a href="#r8">[8]</a>: a request (Get to read, PutFullData to write) travels to a device, and the device sends back one response. The data that the bus moves at one time is a beat. The host reaches the bus through a serial link that carries the Tethered Serial Interface (TSI) protocol <a href="#r6">[6]</a>, which packs reads and writes into bytes.</p>
+
+  <figure class="table" id="tab1">
+    <figcaption><span class="cap">Table 1.</span> Terms used in this document.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>MAC</td><td>multiply-accumulate: <i>c</i> ← <i>c</i> + <i>a b</i></td></tr>
+          <tr><td>FP32</td><td>IEEE 754 binary32: 1 sign, 8 exponent, 23 fraction bits</td></tr>
+          <tr><td>E2M1, UE4M3, E8M0</td><td>4-bit element; unsigned 8-bit scale with 4 exponent and 3 mantissa bits; 8-bit power-of-two scale</td></tr>
+          <tr><td>RNE, RZ</td><td>round to nearest, ties to even; round toward zero (truncate)</td></tr>
+          <tr><td>ULP</td><td>unit in the last place: the gap between neighboring floating-point numbers</td></tr>
+          <tr><td>Bit-exact</td><td>the same output bits as the reference for every input</td></tr>
+          <tr><td><i>M</i>, <i>N</i>, <i>K</i></td><td>rows of <i>A</i> and <i>C</i>; columns of <i>B</i> and <i>C</i>; the length of each dot product</td></tr>
+          <tr class="mid"><td>LUT, FF</td><td>6-input logic function; 1-bit storage element</td></tr>
+          <tr><td>Block RAM</td><td>on-chip memory block: RAMB36 (36&nbsp;Kbit), or one half of it, RAMB18</td></tr>
+          <tr><td>DSP slice</td><td>DSP48E1: a 25 × 18-bit multiplier with a pre-adder and a 48-bit adder</td></tr>
+          <tr><td>Pipeline, latency</td><td>a computation split into clocked stages; cycles from input to output</td></tr>
+          <tr><td>WNS</td><td>worst negative slack: timing margin of the slowest path; positive means the clock is met</td></tr>
+          <tr class="mid"><td>MMIO</td><td>memory-mapped I/O: devices controlled by reads and writes to addresses</td></tr>
+          <tr><td>TSI, TL-UL</td><td>serial protocol of the host link; the bus protocol</td></tr>
+          <tr><td>Beat</td><td>the data a bus moves at once: 32 bytes (eight 32-bit words) on our device bus</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <!-- ===================================================================== 3 -->
+  <h2 id="system"><span class="num">3</span>System organization</h2>
+
+  <p class="lede">A host computer talks to five devices over one bus. The tensor core multiplies matrices, the vector unit does the other arithmetic, the kernel engine moves data and starts the units, and the scratch memory holds the working data.</p>
+
+  <p>The device runs on a test board with an AMD Artix-7 FPGA (<code>xc7a100tfgg484-1</code>) at 50&nbsp;MHz. A host PC drives it with PyUARTSI <a href="#r6">[6]</a> through the board's USB–UART bridge at 921,600&nbsp;Bd (<a href="#fig2">Figure 2</a>). The <code>uart_tsi</code> target decodes each TSI command into one TileLink-UL <a href="#r8">[8]</a> request per 32-bit word. The device bus is wider: it moves 32-byte beats, eight words at a time. <code>tl_widen</code> places each host word in its lane of a beat, at the position given by its address.</p>
+  <p>An arbiter merges the host's requests with those of a second bus master, the kernel engine (§7.1). When both request, the master that did not go last wins. A crossbar routes each request to one of five devices by its address (Appendix&nbsp;<a href="#taba1">Table A1</a>). The bus has one transaction in flight, and a master keeps the bus until its response is accepted. The crossbar denies an address that no device owns: it drops a write and returns zero for a read.</p>
+  <p>The devices take beats in two ways. The scratch memory and the tile memory of the tensor core accept any words of a beat in one request, so a copy between them moves eight words per bus transaction. The register devices (the system registers, the vector unit and the kernel engine) take the words of a beat one at a time, through <code>tl_narrow</code>, at about two cycles per word. The vector unit has a second, private port to the scratch memory. Through it, the vector unit reads its operands and writes its results at one beat per cycle, and this traffic does not use the bus.</p>
+  <p><span class="run">A host session.</span> To multiply two matrices with the tensor core alone, the host writes <i>A</i>, <i>B</i> and their scales into the tile memory, writes the dimensions and a start bit, polls a status register, and reads <i>C</i>. The serial link is the slow part: loading a full 64 × 64 × 256 tile and reading the result takes about 0.6&nbsp;s, against 51.2&nbsp;µs of computation. For this reason, the complete transformer layer of §7 runs on the device. The host uploads the inputs, the weights and one program, and then reads back only the results.</p>
+
+  <figure class="wide" id="fig2">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 920 360" role="img" aria-label="Host PC with PyUARTSI connects over USB to the board's USB-UART bridge, which connects over RXD and TXD to uart_tsi in the FPGA. uart_tsi feeds tl_widen, which places each word in a 32-byte beat. tl_arbiter merges these requests with those of the kernel engine's DMA master, and tl_xbar routes beats to five devices. sys_regs, flash_vector and kernel_engine take words through tl_narrow; nvfp4_tc and scratch_memory take whole beats. flash_vector also reads and writes scratch_memory through a second port.">
+        <defs>
+          <marker id="n2a" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="n2p" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="ahp" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+        <rect class="chip" x="248" y="10" width="668" height="340" rx="4"/>
+        <text class="dim" x="260" y="30">FPGA: Artix-7 xc7a100t, 50 MHz</text>
+
+        <rect class="box" x="8" y="151" width="104" height="64"/>
+        <text class="lbl" x="60" y="177" text-anchor="middle">Host PC</text>
+        <text x="60" y="197" text-anchor="middle">PyUARTSI</text>
+        <rect class="box" x="130" y="151" width="96" height="64"/>
+        <text class="lbl" x="178" y="177" text-anchor="middle">USB–UART</text>
+        <text x="178" y="197" text-anchor="middle">bridge</text>
+        <text class="dim sm" x="178" y="234" text-anchor="middle">921,600 Bd</text>
+        <line class="edge" x1="112" y1="183" x2="128" y2="183" marker-start="url(#n2a)" marker-end="url(#n2a)"/>
+        <line class="edge" x1="226" y1="175" x2="264" y2="175" marker-end="url(#n2a)"/>
+        <line class="edge" x1="264" y1="191" x2="228" y2="191" marker-end="url(#n2a)"/>
+        <text class="dim sm" x="245" y="168" text-anchor="middle">RXD</text>
+        <text class="dim sm" x="245" y="206" text-anchor="middle">TXD</text>
+
+        <rect class="box" x="266" y="139" width="100" height="88"/>
+        <text class="lbl mono" x="316" y="163" text-anchor="middle">uart_tsi</text>
+        <text x="316" y="183" text-anchor="middle">TSI decoder</text>
+        <text class="sm" x="316" y="201" text-anchor="middle">1 word →</text>
+        <text class="sm" x="316" y="215" text-anchor="middle">1 request</text>
+        <line class="edge" x1="366" y1="183" x2="380" y2="183" marker-start="url(#n2a)" marker-end="url(#n2a)"/>
+
+        <rect class="box" x="382" y="157" width="78" height="52"/>
+        <text class="lbl mono" x="421" y="180" text-anchor="middle">tl_widen</text>
+        <text class="sm dim" x="421" y="198" text-anchor="middle">word → beat</text>
+        <line class="beat" x1="460" y1="183" x2="474" y2="183" marker-start="url(#n2a)" marker-end="url(#n2a)"/>
+        <rect class="box" x="476" y="157" width="84" height="52"/>
+        <text class="lbl mono" x="518" y="188" text-anchor="middle">tl_arbiter</text>
+        <line class="beat" x1="560" y1="183" x2="574" y2="183" marker-start="url(#n2a)" marker-end="url(#n2a)"/>
+        <rect class="box" x="576" y="157" width="62" height="52"/>
+        <text class="lbl mono" x="607" y="188" text-anchor="middle">tl_xbar</text>
+        <text class="dim sm" x="566" y="146" text-anchor="middle">32-byte beats</text>
+        <text class="dim sm" x="640" y="226" text-anchor="end">unmapped: denied</text>
+
+        <line class="beat" x1="638" y1="183" x2="650" y2="183"/>
+        <line class="beat" x1="650" y1="62" x2="650" y2="304"/>
+
+        <line class="beat" x1="650" y1="63" x2="660" y2="63" marker-end="url(#n2a)"/>
+        <rect class="box" x="662" y="52" width="62" height="22"/>
+        <text class="mono sm" x="693" y="67" text-anchor="middle">tl_narrow</text>
+        <line class="edge" x1="724" y1="63" x2="736" y2="63" marker-end="url(#n2a)"/>
+        <rect class="box" x="738" y="40" width="142" height="46"/>
+        <text class="lbl mono" x="748" y="59">sys_regs</text>
+        <text class="dim mono sm" x="748" y="76">0x0000_0000 · 4 KiB</text>
+
+        <line class="beat" x1="650" y1="123" x2="736" y2="123" marker-end="url(#n2a)"/>
+        <rect class="pe" x="738" y="100" width="142" height="46"/>
+        <text class="lbl mono tp" x="748" y="119">nvfp4_tc</text>
+        <text class="dim mono sm" x="748" y="136">0x1000_0000 · 64 KiB</text>
+
+        <line class="beat" x1="650" y1="183" x2="660" y2="183" marker-end="url(#n2a)"/>
+        <rect class="box" x="662" y="172" width="62" height="22"/>
+        <text class="mono sm" x="693" y="187" text-anchor="middle">tl_narrow</text>
+        <line class="edge" x1="724" y1="183" x2="736" y2="183" marker-end="url(#n2a)"/>
+        <rect class="box" x="738" y="160" width="142" height="46"/>
+        <text class="lbl mono" x="748" y="179">flash_vector</text>
+        <text class="dim mono sm" x="748" y="196">0x1001_0000 · 64 KiB</text>
+
+        <line class="beat" x1="650" y1="243" x2="660" y2="243" marker-end="url(#n2a)"/>
+        <rect class="box" x="662" y="232" width="62" height="22"/>
+        <text class="mono sm" x="693" y="247" text-anchor="middle">tl_narrow</text>
+        <line class="edge" x1="724" y1="243" x2="736" y2="243" marker-end="url(#n2a)"/>
+        <rect class="box" x="738" y="220" width="142" height="46"/>
+        <text class="lbl mono" x="748" y="239">kernel_engine</text>
+        <text class="dim mono sm" x="748" y="256">0x1002_0000 · 128 KiB</text>
+
+        <line class="beat" x1="650" y1="303" x2="736" y2="303" marker-end="url(#n2a)"/>
+        <rect class="box" x="738" y="280" width="142" height="46"/>
+        <text class="lbl mono" x="748" y="299">scratch_memory</text>
+        <text class="dim mono sm" x="748" y="316">0x2000_0000 · 128 KiB</text>
+
+        <polyline class="vp" points="882,190 898,190 898,296 884,296" marker-start="url(#n2p)" marker-end="url(#n2p)"/>
+        <text class="sm" x="905" y="243" text-anchor="middle" transform="rotate(90 905 243)">vector port</text>
+
+        <polyline class="flag" points="738,260 518,260 518,211" marker-end="url(#n2a)"/>
+        <text class="dim sm" x="640" y="278" text-anchor="end">DMA master of kernel_engine</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 2.</span> System organization. Thin lines carry 32-bit words and thick lines 32-byte beats. The kernel engine is a second bus master (dashed). The register devices take one word at a time through <code>tl_narrow</code>. The vector unit reads and writes the scratch memory through its own port (green). Highlighted: the tensor core.</figcaption>
+  </figure>
+
+  <!-- ===================================================================== 4 -->
+  <h2 id="arithmetic"><span class="num">4</span>Target arithmetic</h2>
+
+  <p class="lede">This section states exactly which 32 bits the tensor core must return for each input. We took this contract from GPU silicon, because NVIDIA does not publish it.</p>
+
+  <p><span class="run">Formats.</span> An NVFP4 tensor stores elements in E2M1, one UE4M3 scale for each block of 16 consecutive elements along <i>K</i>, and one FP32 scale for the whole tensor (§2.3). MXFP4 <a href="#r2">[2]</a> instead uses one E8M0 power-of-two scale per 32 elements. Blackwell tensor cores also accept E8M0 per 16 elements. The core supports these three formats and unscaled FP4 (<a href="#tab2">Table 2</a>).</p>
+
+  <figure class="table" id="tab2">
+    <figcaption><span class="cap">Table 2.</span> Element formats of the core and the GPU instructions used as their reference. All use E2M1 elements and the <code>mma.sync…m16n8k64</code> shape on sm_120a <a href="#r1">[1]</a>.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Mode</th><th>Format</th><th>Block scale</th><th class="r">Block</th><th>Silicon reference</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>NVFP4</td><td>UE4M3</td><td class="r">16</td><td><code>kind::mxf4nvf4</code>, <code>scale_vec::4X</code>, <code>ue4m3</code></td></tr>
+          <tr><td>1</td><td>MXFP4</td><td>E8M0</td><td class="r">32</td><td><code>kind::mxf4nvf4</code>, <code>scale_vec::2X</code>, <code>ue8m0</code></td></tr>
+          <tr><td>2</td><td>FP4</td><td>none</td><td class="r">–</td><td>mode 3 with every scale equal to 2<sup>0</sup></td></tr>
+          <tr><td>3</td><td>MXFP4-16</td><td>E8M0</td><td class="r">16</td><td><code>kind::mxf4nvf4</code>, <code>scale_vec::4X</code>, <code>ue8m0</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <p><span class="run">Unit contract.</span> One processing element (PE) computes <i>d</i> = <i>c</i> + Σ<sub><i>k</i>&lt;64</sub> <i>a<sub>k</sub> b<sub>k</sub> s</i><sub>A</sub>(<i>k</i>) <i>s</i><sub>B</sub>(<i>k</i>). The sum runs over 64 elements in four 16-element blocks, <i>s</i><sub>A</sub>(<i>k</i>) and <i>s</i><sub>B</sub>(<i>k</i>) are the block scales of element <i>k</i>, and the accumulator <i>c</i> is FP32. The contract below is rule <code>rtx5090</code> of our calibrated model (<code>tcgen05/nvfp4_tcgen05_check.py</code>). The model started from MMA-Sim <a href="#r5">[5]</a>, and we corrected it wherever an RTX&nbsp;5090 (<code>mma.sync</code>, sm_120a) disagreed. A Jetson AGX Thor (<code>tcgen05.mma</code>, sm_110a) and the RTX&nbsp;5090 returned the same bits on all 920,079 of our test vectors, so one contract covers both GPUs. Each block sum is exact:</p>
+
+  <div class="eq" id="eq1">
+    <math display="block"><msub><mi>σ</mi><mi>g</mi></msub><mo>=</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>0</mn></mrow><mn>15</mn></munderover><msub><mi>a</mi><mrow><mn>16</mn><mi>g</mi><mo>+</mo><mi>i</mi></mrow></msub><mspace width="0.15em"></mspace><msub><mi>b</mi><mrow><mn>16</mn><mi>g</mi><mo>+</mo><mi>i</mi></mrow></msub><mo>,</mo><mspace width="1em"></mspace><mi>g</mi><mo>∈</mo><mo stretchy="false">{</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>,</mo><mn>2</mn><mo>,</mo><mn>3</mn><mo stretchy="false">}</mo><mo>.</mo></math>
+    <span class="eqn">(1)</span>
+  </div>
+
+  <p>Products of E2M1 values are multiples of 1/4 and |<i>σ<sub>g</sub></i>| ≤ 576, so <i>σ<sub>g</sub></i> fits a short fixed-point word. We normalize each scale code to <i>s</i> = (<i>S</i>/8)·2<sup><i>e</i></sup> with a 4-bit integer <i>S</i>. For a UE4M3 code with exponent field <i>E</i> and mantissa <i>m</i>, or an E8M0 code <i>x</i>:</p>
+
+  <div class="eq" id="eq2">
+    <math display="block"><mrow><mo>(</mo><mi>S</mi><mo>,</mo><mi>e</mi><mo>)</mo></mrow><mo>=</mo><mrow><mo stretchy="true">{</mo><mtable>
+      <mtr><mtd><mrow><mo>(</mo><mn>8</mn><mo>+</mo><mi>m</mi><mo>,</mo><mspace width="0.3em"></mspace><mi>E</mi><mo>−</mo><mn>7</mn><mo>)</mo></mrow></mtd><mtd><mtext>UE4M3,&#160;</mtext><mi>E</mi><mo>&gt;</mo><mn>0</mn></mtd></mtr>
+      <mtr><mtd><mrow><mo>(</mo><mi>m</mi><mo>,</mo><mspace width="0.3em"></mspace><mo>−</mo><mn>6</mn><mo>)</mo></mrow></mtd><mtd><mtext>UE4M3,&#160;</mtext><mi>E</mi><mo>=</mo><mn>0</mn><mo>,</mo><mspace width="0.3em"></mspace><mi>m</mi><mo>&gt;</mo><mn>0</mn></mtd></mtr>
+      <mtr><mtd><mrow><mo>(</mo><mn>0</mn><mo>,</mo><mspace width="0.3em"></mspace><mo>−</mo><mn>126</mn><mo>)</mo></mrow></mtd><mtd><mtext>UE4M3,&#160;</mtext><mi>E</mi><mo>=</mo><mi>m</mi><mo>=</mo><mn>0</mn></mtd></mtr>
+      <mtr><mtd><mrow><mo>(</mo><mn>8</mn><mo>,</mo><mspace width="0.3em"></mspace><mi>x</mi><mo>−</mo><mn>127</mn><mo>)</mo></mrow></mtd><mtd><mtext>E8M0,&#160;</mtext><mn>0</mn><mo>&lt;</mo><mi>x</mi><mo>&lt;</mo><mn>255</mn></mtd></mtr>
+      <mtr><mtd><mrow><mo>(</mo><mn>4</mn><mo>,</mo><mspace width="0.3em"></mspace><mo>−</mo><mn>126</mn><mo>)</mo></mrow></mtd><mtd><mtext>E8M0,&#160;</mtext><mi>x</mi><mo>=</mo><mn>0</mn></mtd></mtr>
+    </mtable></mrow></math>
+    <span class="eqn">(2)</span>
+  </div>
+
+  <p>UE4M3 code <code>0x7F</code> and E8M0 code <code>0xFF</code> are NaN, and bit 7 of a UE4M3 code is ignored. Block <i>g</i> contributes <i>γ<sub>g</sub></i> = <i>σ<sub>g</sub> s</i><sub>A,<i>g</i></sub> <i>s</i><sub>B,<i>g</i></sub> at exponent <i>X<sub>g</sub></i> = <i>e</i><sub>A,<i>g</i></sub> + <i>e</i><sub>B,<i>g</i></sub>. The accumulator <i>c</i> has exponent <i>X<sub>c</sub></i> = max(<i>E<sub>c</sub></i> − 127, −126), where <i>E<sub>c</sub></i> is its biased exponent. With <i>e</i><sub>max</sub> = max(<i>X<sub>c</sub></i>, <i>X</i><sub>0</sub>, …, <i>X</i><sub>3</sub>), the result is</p>
+
+  <div class="eq" id="eq3">
+    <math display="block"><mi>d</mi><mo>=</mo><msub><mi>RZ</mi><mn>32</mn></msub><mrow><mo stretchy="true">(</mo><msup><mn>2</mn><mrow><msub><mi>e</mi><mi>max</mi></msub><mo>−</mo><mn>35</mn></mrow></msup><munder><mo>∑</mo><mrow><mi>t</mi><mo>∈</mo><mo>{</mo><mi>c</mi><mo>,</mo><msub><mi>γ</mi><mn>0</mn></msub><mo>,</mo><mo>…</mo><mo>,</mo><msub><mi>γ</mi><mn>3</mn></msub><mo>}</mo></mrow></munder><mrow><mi>sgn</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo></mrow><mrow><mo stretchy="true">⌊</mo><mrow><mo stretchy="false">|</mo><mi>t</mi><mo stretchy="false">|</mo></mrow><mo>⋅</mo><msup><mn>2</mn><mrow><mn>35</mn><mo>−</mo><msub><mi>e</mi><mi>max</mi></msub></mrow></msup><mo stretchy="true">⌋</mo></mrow><mo stretchy="true">)</mo></mrow><mo>,</mo></math>
+    <span class="eqn">(3)</span>
+  </div>
+
+  <p>where RZ<sub>32</sub> truncates a real number to binary32. On overflow it returns ±∞ rather than the largest finite value, as the silicon does. In words: the hardware lines up the five terms (the four block sums and <i>c</i>) at the exponent of the largest one, cuts every term off 35 bits below that exponent, adds the five exactly, and cuts the sum to FP32.</p>
+
+  <p><span class="run">Departures from exact arithmetic.</span> Three properties of Eq.&nbsp;(<a href="#eq3">3</a>) separate it from a correctly rounded dot product, and a bit-exact implementation must keep all three. First, every term, <i>c</i> included, is truncated to 35 fractional bits below <i>e</i><sub>max</sub> before the sum, so a small <i>c</i> can vanish. Second, a block takes its exponent <i>X<sub>g</sub></i> from its scales even when <i>σ<sub>g</sub></i> = 0. A zero block with a large scale therefore still moves the truncation point. Third, the final conversion truncates instead of rounding to nearest.</p>
+  <p><span class="run">Special cases.</span> These override Eq.&nbsp;(<a href="#eq3">3</a>) in the order given. A NaN in a used scale, or a NaN <i>c</i>, gives <code>0x7FFF_FFFF</code>. An infinite <i>c</i> passes through. If all 64 products are zero, <i>d</i> = <i>c</i>, with −0 replaced by +0. MMA-Sim lacks this last rule, and 816 vectors of our first GPU run depended on it.</p>
+  <p><span class="run">Model accuracy.</span> The contract still differs from silicon on 49 of 600,054 random vectors (0.008%). In 15 of them, a zero block with a large scale sets the alignment point by a rule we have not yet identified. The other 34 are 28 subnormal and 6 normal outputs that differ by one unit in the last place. The hardware implements the contract, so it inherits these differences.</p>
+  <p><span class="run">Tensor scales.</span> The FP32 per-tensor scales are not part of the MMA. NVIDIA GEMMs apply them after the product as the epilogue factor α. Likewise, our kernel multiplies <i>C</i> by <i>s</i><sub>A</sub><i>s</i><sub>B</sub> on the vector unit (§7.2).</p>
+
+  <!-- ===================================================================== 5 -->
+  <h2 id="tc"><span class="num">5</span>Tensor core</h2>
+
+  <p class="lede">The tensor core is a grid of eight processing elements. Each one computes a 64-element dot product by the contract of §4, and the grid starts eight of them every cycle: 512 multiply-accumulates.</p>
+
+  <p>The tensor core, <code>nvfp4_tc</code>, owns 64&nbsp;KiB at <code>0x1000_0000</code>. This space holds its registers and the block RAMs for the operand tiles <i>A</i> and <i>B</i> and the accumulator tile <i>C</i> (Appendix&nbsp;<a href="#taba2">Table A2</a>). A tile is up to 64 × 64 × 256 (<i>M</i> × <i>N</i> × <i>K</i>). This section describes the processing element (§5.1), the grid and its memory (§5.2), the mapping of the products onto DSP slices (§5.3), and the schedule (§5.4).</p>
+
+  <h3 id="pe"><span class="num">5.1</span>Processing element</h3>
+
+  <p>The PE, <code>fp4_fedp</code>, evaluates Eq.&nbsp;(<a href="#eq3">3</a>) in a five-stage pipeline. It accepts one operation per cycle, and each result is ready five cycles after its operands (<a href="#fig3">Figure 3</a>). The block sums reuse the exact datapath of nvfp4-dotprod-formal-dv <a href="#r4">[4]</a>: <code>mul_lane_nvfp4</code>, <code>align_nvfp4</code> and <code>exact_acc_tree</code>, which upstream verified with formal and UVM testbenches. On our board, that datapath alone matched its exact golden model on 1.1&nbsp;M vectors and the RTX&nbsp;5090 on 100,008. We designed the fused accumulation that follows the block sums.</p>
+  <p>Stage&nbsp;1 forms the 16 products of each block and sums them exactly. It also decodes the eight scale bytes by Eq.&nbsp;(<a href="#eq2">2</a>), forms <i>S</i><sub>A,<i>g</i></sub><i>S</i><sub>B,<i>g</i></sub> and <i>X<sub>g</sub></i>, and evaluates the special-case conditions. Stage&nbsp;2 multiplies each block sum by <i>S</i><sub>A,<i>g</i></sub><i>S</i><sub>B,<i>g</i></sub> in a DSP slice. The result is an integer <i>T<sub>g</sub></i> = 4<i>σ<sub>g</sub> S</i><sub>A,<i>g</i></sub><i>S</i><sub>B,<i>g</i></sub> with |<i>T<sub>g</sub></i>| ≤ 2304 · 225 &lt; 2<sup>19</sup>, and <i>γ<sub>g</sub></i> = <i>T<sub>g</sub></i> · 2<sup><i>X<sub>g</sub></i> − 8</sup>. In the same stage, the five exponents reduce to <i>e</i><sub>max</sub>. Stage&nbsp;3 expresses each magnitude in units of 2<sup><i>e</i><sub>max</sub> − 35</sup> and shifts it right by <i>e</i><sub>max</sub> − <i>X</i>. The shift implements the floor of Eq.&nbsp;(<a href="#eq3">3</a>) (<a href="#fig4">Figure 4</a>). The aligned block terms are 48 bits wide and the aligned <i>c</i> is 37 bits. Stage&nbsp;4 adds the five signed terms exactly in 51 bits. Stage&nbsp;5 finds the leading one, truncates to binary32, handles overflow and subnormal results, and applies the special cases.</p>
+  <p>Integer arithmetic makes the PE exact by construction: no step between the inputs and the final cut rounds, except the deliberate truncation of stage&nbsp;3. Out of context, one PE uses 4,084 LUTs, 548 flip-flops and 4 DSP slices, and it meets 50&nbsp;MHz with 7.8&nbsp;ns of slack. Its 64 products take 1,280 of these LUTs; §5.3 moves them into DSP slices.</p>
+
+  <figure class="wide" id="fig3">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 920 410" role="img" aria-label="Five-stage pipeline of the processing element. Stage 1: four block datapaths of 16 products, alignment and an exact adder tree; scale decode; special-case checks. Stage 2: four DSP multiplies and the exponent maximum; c decode. Stage 3: alignment of five terms with truncation. Stage 4: a 51-bit sum. Stage 5: normalization to FP32 and the special-case override.">
+        <defs>
+          <marker id="f2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+        <text class="lbl dim" x="204" y="22" text-anchor="middle">Stage 1</text>
+        <text class="lbl dim" x="436" y="22" text-anchor="middle">Stage 2</text>
+        <text class="lbl dim" x="602" y="22" text-anchor="middle">Stage 3</text>
+        <text class="lbl dim" x="728" y="22" text-anchor="middle">Stage 4</text>
+        <text class="lbl dim" x="838" y="22" text-anchor="middle">Stage 5</text>
+        <rect class="reg" x="338" y="34" width="6" height="350"/>
+        <rect class="reg" x="526" y="34" width="6" height="350"/>
+        <rect class="reg" x="670" y="34" width="6" height="350"/>
+        <rect class="reg" x="778" y="34" width="6" height="350"/>
+        <rect class="reg" x="890" y="34" width="6" height="350"/>
+
+        <!-- inputs -->
+        <text class="mono" x="10" y="96">a, b</text>
+        <text class="sm dim" x="10" y="112">2 × 256 b</text>
+        <line class="edge" x1="70" y1="100" x2="102" y2="100" marker-end="url(#f2a)"/>
+        <text class="mono" x="10" y="178">sfa, sfb</text>
+        <text class="sm dim" x="10" y="194">2 × 32 b</text>
+        <line class="edge" x1="70" y1="182" x2="102" y2="182" marker-end="url(#f2a)"/>
+        <text class="mono" x="10" y="210">mode</text>
+        <line class="edge" x1="50" y1="206" x2="102" y2="206" marker-end="url(#f2a)"/>
+        <text class="mono" x="10" y="330">c</text>
+        <text class="sm dim" x="10" y="346">FP32</text>
+        <line class="edge" x1="40" y1="334" x2="354" y2="334" marker-end="url(#f2a)"/>
+
+        <!-- stage 1: block datapath, x4 -->
+        <rect class="box" x="116" y="44" width="200" height="74"/>
+        <rect class="box" x="112" y="48" width="200" height="74"/>
+        <rect class="box" x="108" y="52" width="200" height="74"/>
+        <rect class="box" x="104" y="56" width="200" height="74"/>
+        <text class="lbl" x="112" y="73">block g, ×4</text>
+        <rect class="shade" x="112" y="84" width="62" height="36"/>
+        <text class="sm" x="143" y="99" text-anchor="middle">16 ×</text>
+        <text class="mono sm" x="143" y="113" text-anchor="middle">mul_lane</text>
+        <rect class="shade" x="182" y="84" width="48" height="36"/>
+        <text class="mono sm" x="206" y="106" text-anchor="middle">align</text>
+        <rect class="shade" x="238" y="84" width="58" height="36"/>
+        <text class="sm" x="267" y="99" text-anchor="middle">exact</text>
+        <text class="sm" x="267" y="113" text-anchor="middle">adder tree</text>
+        <line class="edge" x1="174" y1="102" x2="181" y2="102" marker-end="url(#f2a)"/>
+        <line class="edge" x1="230" y1="102" x2="237" y2="102" marker-end="url(#f2a)"/>
+        <line class="edge" x1="316" y1="100" x2="354" y2="100" marker-end="url(#f2a)"/>
+        <text x="320" y="92">σ<tspan class="sub" dy="3">g</tspan></text>
+
+        <rect class="box" x="104" y="150" width="200" height="64"/>
+        <text class="lbl" x="112" y="168">scale decode, ×8</text>
+        <text class="sm" x="112" y="186">(S, e) by Eq. (2)</text>
+        <text class="sm" x="112" y="204">S<tspan class="sub" dy="3">A</tspan><tspan dy="-3">S</tspan><tspan class="sub" dy="3">B</tspan><tspan dy="-3"> and X</tspan><tspan class="sub" dy="3">g</tspan><tspan dy="-3"> = e</tspan><tspan class="sub" dy="3">A</tspan><tspan dy="-3"> + e</tspan><tspan class="sub" dy="3">B</tspan></text>
+        <polyline class="edge" points="304,166 348,166 348,120 354,120" marker-end="url(#f2a)"/>
+        <line class="edge" x1="304" y1="196" x2="354" y2="196" marker-end="url(#f2a)"/>
+
+        <rect class="box" x="104" y="236" width="200" height="56"/>
+        <text class="lbl" x="112" y="255">special cases</text>
+        <text class="sm" x="112" y="274">NaN · c = ±∞ · all products 0</text>
+
+        <!-- stage 2 -->
+        <rect class="box" x="356" y="56" width="160" height="74"/>
+        <text class="lbl" x="366" y="76">DSP multiply, ×4</text>
+        <text class="sm" x="366" y="96">T<tspan class="sub" dy="3">g</tspan><tspan dy="-3"> = 4σ</tspan><tspan class="sub" dy="3">g</tspan><tspan dy="-3"> · S</tspan><tspan class="sub" dy="3">A</tspan><tspan dy="-3">S</tspan><tspan class="sub" dy="3">B</tspan></text>
+        <text class="sm dim" x="366" y="114">|T<tspan class="sub" dy="3">g</tspan><tspan dy="-3">| &lt; 2</tspan><tspan class="sub" dy="-5">19</tspan></text>
+
+        <rect class="box" x="356" y="150" width="160" height="64"/>
+        <text class="lbl" x="366" y="168">exponent max</text>
+        <text class="sm" x="366" y="188">e<tspan class="sub" dy="3">max</tspan><tspan dy="-3"> = max(X</tspan><tspan class="sub" dy="3">c</tspan><tspan dy="-3">, X</tspan><tspan class="sub" dy="3">0</tspan><tspan dy="-3"> … X</tspan><tspan class="sub" dy="3">3</tspan><tspan dy="-3">)</tspan></text>
+        <text class="sm dim" x="366" y="206">shift amounts e<tspan class="sub" dy="3">max</tspan><tspan dy="-3"> − X</tspan></text>
+
+        <rect class="box" x="356" y="304" width="160" height="56"/>
+        <text class="lbl" x="366" y="324">c decode</text>
+        <text class="sm" x="366" y="344">S<tspan class="sub" dy="3">c</tspan><tspan dy="-3"> (24 b), X</tspan><tspan class="sub" dy="3">c</tspan></text>
+        <line class="edge" x1="436" y1="304" x2="436" y2="216" marker-end="url(#f2a)"/>
+
+        <!-- stage 3 -->
+        <line class="edge" x1="516" y1="93" x2="542" y2="93" marker-end="url(#f2a)"/>
+        <line class="edge" x1="516" y1="182" x2="542" y2="182" marker-end="url(#f2a)"/>
+        <line class="edge" x1="516" y1="334" x2="542" y2="334" marker-end="url(#f2a)"/>
+        <rect class="box" x="544" y="56" width="116" height="304"/>
+        <text class="lbl" x="554" y="78">align, ×5</text>
+        <text class="sm" x="554" y="122">shift right by</text>
+        <text class="sm" x="554" y="138">e<tspan class="sub" dy="3">max</tspan><tspan dy="-3"> − X; drop bits</tspan></text>
+        <text class="sm" x="554" y="154">below 2<tspan class="sub" dy="-5">emax−35</tspan></text>
+        <text class="sm dim" x="554" y="236">blocks: 48 b</text>
+        <text class="sm dim" x="554" y="252">c: 37 b</text>
+
+        <!-- stage 4 -->
+        <line class="edge" x1="660" y1="182" x2="686" y2="182" marker-end="url(#f2a)"/>
+        <rect class="box" x="688" y="150" width="80" height="64"/>
+        <text class="lbl" x="728" y="176" text-anchor="middle">Σ 5 terms</text>
+        <text class="sm" x="728" y="196" text-anchor="middle">51 b, exact</text>
+
+        <!-- stage 5 -->
+        <line class="edge" x1="768" y1="182" x2="790" y2="182" marker-end="url(#f2a)"/>
+        <rect class="box" x="792" y="56" width="92" height="294"/>
+        <text class="lbl" x="838" y="78" text-anchor="middle">normalize</text>
+        <text class="sm" x="838" y="104" text-anchor="middle">leading one</text>
+        <text class="sm" x="838" y="120" text-anchor="middle">cut to FP32</text>
+        <text class="sm" x="838" y="136" text-anchor="middle">overflow → ±∞</text>
+        <text class="sm" x="838" y="152" text-anchor="middle">subnormals</text>
+        <text class="sm" x="838" y="300" text-anchor="middle">special-case</text>
+        <text class="sm" x="838" y="316" text-anchor="middle">override</text>
+        <line class="edge" x1="896" y1="182" x2="916" y2="182" marker-end="url(#f2a)"/>
+        <text class="mono" x="906" y="172" text-anchor="middle">d</text>
+
+        <polyline class="flag" points="204,292 204,374 838,374 838,352" marker-end="url(#f2a)"/>
+        <text class="sm dim" x="520" y="398" text-anchor="middle">special-case flags</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 3.</span> Pipeline of the processing element. Grey bars are pipeline registers. The four block datapaths are identical, and only one is drawn. The special-case flags (from the scales, <i>c</i> and the 64 products) bypass the arithmetic and select the output in stage&nbsp;5.</figcaption>
+  </figure>
+
+  <figure class="wide" id="fig4">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 920 262" role="img" aria-label="Schematic of term alignment. Five bars show the significant bits of gamma 1, gamma 0, gamma 2, gamma 3 and c at their exponents. A dashed line at bit weight 2 to the e max minus 35 marks the cut. The parts of gamma 3 and c below the cut are hatched as dropped.">
+        <defs>
+          <pattern id="f3h" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect class="hatchbg" width="6" height="6"/>
+            <line class="hatchln" x1="0" y1="0" x2="0" y2="6"/>
+          </pattern>
+        </defs>
+        <text class="lbl" x="10" y="57">γ₁</text><text class="sm dim" x="36" y="57">at e<tspan class="sub" dy="3">max</tspan></text>
+        <text class="lbl" x="10" y="89">γ₀</text><text class="sm dim" x="36" y="89">at e<tspan class="sub" dy="3">max</tspan><tspan dy="-3"> − 6</tspan></text>
+        <text class="lbl" x="10" y="121">γ₂</text><text class="sm dim" x="36" y="121">at e<tspan class="sub" dy="3">max</tspan><tspan dy="-3"> − 20</tspan></text>
+        <text class="lbl" x="10" y="153">γ₃</text><text class="sm dim" x="36" y="153">at e<tspan class="sub" dy="3">max</tspan><tspan dy="-3"> − 30</tspan></text>
+        <text class="lbl" x="10" y="185">c</text><text class="sm dim" x="36" y="185">at e<tspan class="sub" dy="3">max</tspan><tspan dy="-3"> − 15</tspan></text>
+
+        <rect class="term" x="176.4" y="44" width="250.8" height="18"/>
+        <rect class="term" x="255.6" y="76" width="250.8" height="18"/>
+        <rect class="term" x="440.4" y="108" width="250.8" height="18"/>
+        <rect class="term" x="572.4" y="140" width="211.2" height="18"/>
+        <rect class="hatch" x="783.6" y="140" width="39.6" height="18" fill="url(#f3h)"/>
+        <rect class="cterm" x="506.4" y="172" width="277.2" height="18"/>
+        <rect class="hatch" x="783.6" y="172" width="39.6" height="18" fill="url(#f3h)"/>
+
+        <line class="cut" x1="783.6" y1="32" x2="783.6" y2="198"/>
+        <text class="sm" x="783.6" y="24" text-anchor="middle">cut at 2<tspan class="sub" dy="-5">emax−35</tspan></text>
+
+        <line class="axis" x1="150" y1="200" x2="902.4" y2="200"/>
+        <line class="axis" x1="209.4" y1="200" x2="209.4" y2="205"/><text class="sm" x="209.4" y="218" text-anchor="middle">8</text>
+        <line class="axis" x1="315" y1="200" x2="315" y2="205"/><text class="sm" x="315" y="218" text-anchor="middle">0</text>
+        <line class="axis" x1="420.6" y1="200" x2="420.6" y2="205"/><text class="sm" x="420.6" y="218" text-anchor="middle">−8</text>
+        <line class="axis" x1="526.2" y1="200" x2="526.2" y2="205"/><text class="sm" x="526.2" y="218" text-anchor="middle">−16</text>
+        <line class="axis" x1="631.8" y1="200" x2="631.8" y2="205"/><text class="sm" x="631.8" y="218" text-anchor="middle">−24</text>
+        <line class="axis" x1="737.4" y1="200" x2="737.4" y2="205"/><text class="sm" x="737.4" y="218" text-anchor="middle">−32</text>
+        <line class="axis" x1="843" y1="200" x2="843" y2="205"/><text class="sm" x="843" y="218" text-anchor="middle">−40</text>
+        <text class="sm dim" x="10" y="214">bit p, weight 2<tspan class="sub" dy="-5">emax+p</tspan></text>
+
+        <rect class="hatch" x="150" y="238" width="24" height="12" fill="url(#f3h)"/>
+        <text class="sm" x="180" y="248">dropped: each term is cut toward zero</text>
+        <rect class="term" x="470" y="238" width="24" height="12"/>
+        <text class="sm" x="500" y="248">kept, then summed exactly in stage 4</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 4.</span> Alignment of the five terms of Eq.&nbsp;(<a href="#eq3">3</a>), schematic. Each bar spans the significant bits of one term: 19 bits for a block term (|<i>T<sub>g</sub></i>| &lt; 2<sup>19</sup>, least significant bit at 2<sup><i>X<sub>g</sub></i> − 8</sup>) and 24 bits for <i>c</i>. Bits below 2<sup><i>e</i><sub>max</sub> − 35</sup> are dropped, which truncates each magnitude toward zero before the sum. The exponents shown are an example.</figcaption>
+  </figure>
+
+  <h3 id="array"><span class="num">5.2</span>Grid and on-chip memory</h3>
+
+  <p>Eight PEs form a 2 × 4 grid (<a href="#fig5">Figure 5</a>). Each cycle, the grid receives one 64-element <i>K</i> chunk of two rows of <i>A</i> and four columns of <i>B</i>. Every row of <i>A</i> feeds four PEs and every column of <i>B</i> feeds two, so the grid updates a 2 × 4 block of <i>C</i> with 512 MACs from 6 operand reads. In our microbenchmark, one RTX&nbsp;5090 streaming multiprocessor sustains 2,048 NVFP4 MACs per cycle with four tensor cores, so each GPU tensor core has the same 512-MAC rate. In the default build, the eight PEs compute their products together in DSP slices (§5.3), and each PE keeps its own stages 2–5.</p>
+  <p>The PE width equals the <i>K</i> of the <code>m16n8k64</code> instruction. With this width, the roundings of a <i>K</i> chain fall where the GPU puts them: an output with <i>K</i> = 256 is rounded four times on both. A 2 × 8 grid of 32-element units has the same MAC rate, but it rounds at twice as many points, so it cannot reproduce the GPU.</p>
+  <p><span class="run">Memory.</span> All tile storage is simple dual-port block RAM with one write port and one read port, in one RAMB18 each. The RAMs are banked so that one read of each delivers a full chunk to the grid (<a href="#tab3">Table 3</a>). Row <i>i</i> of <i>A</i> is in bank <i>i</i> mod 2 and column <i>j</i> of <i>B</i> in bank <i>j</i> mod 4. <i>C</i>[<i>i</i>][<i>j</i>] is in lane (<i>i</i> mod 2, <i>j</i> mod 4) at entry (⌊<i>i</i>/2⌋, ⌊<i>j</i>/4⌋). Each bank splits a 64-element chunk across eight 32-bit word lanes and keeps the chunk's four scale bytes in one more lane. The eight word lanes match the eight words of a bus beat, so one bus request reads or writes a whole chunk of a row in one cycle. The host and the sequencer share the RAM ports. The bus uses them while the core is idle. While the core runs, it serves only register reads, and other accesses wait.</p>
+
+  <figure class="wide" id="fig5">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 880 470" role="img" aria-label="Two A banks feed the two rows of a 2 by 4 PE grid and four B banks feed its four columns. Each PE reads its C lane at issue and writes the result back to the same lane six cycles later. The sequencer addresses all RAMs.">
+        <defs>
+          <marker id="f4c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ahc" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="f4f" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+        <line class="lb" x1="306" y1="74" x2="306" y2="298"/>
+        <line class="lb" x1="436" y1="74" x2="436" y2="298"/>
+        <line class="lb" x1="566" y1="74" x2="566" y2="298"/>
+        <line class="lb" x1="696" y1="74" x2="696" y2="298"/>
+        <line class="la" x1="196" y1="158" x2="770" y2="158"/>
+        <line class="la" x1="196" y1="268" x2="770" y2="268"/>
+
+        <rect class="box" x="276" y="18" width="104" height="56"/>
+        <text class="lbl tb" x="328" y="42" text-anchor="middle">B bank 0</text>
+        <text class="sm dim" x="328" y="61" text-anchor="middle">j mod 4 = 0</text>
+        <rect class="box" x="406" y="18" width="104" height="56"/>
+        <text class="lbl tb" x="458" y="42" text-anchor="middle">B bank 1</text>
+        <text class="sm dim" x="458" y="61" text-anchor="middle">j mod 4 = 1</text>
+        <rect class="box" x="536" y="18" width="104" height="56"/>
+        <text class="lbl tb" x="588" y="42" text-anchor="middle">B bank 2</text>
+        <text class="sm dim" x="588" y="61" text-anchor="middle">j mod 4 = 2</text>
+        <rect class="box" x="666" y="18" width="104" height="56"/>
+        <text class="lbl tb" x="718" y="42" text-anchor="middle">B bank 3</text>
+        <text class="sm dim" x="718" y="61" text-anchor="middle">j mod 4 = 3</text>
+
+        <rect class="box" x="24" y="128" width="172" height="60"/>
+        <text class="lbl ta" x="110" y="153" text-anchor="middle">A bank 0</text>
+        <text class="sm dim" x="110" y="173" text-anchor="middle">i mod 2 = 0</text>
+        <rect class="box" x="24" y="238" width="172" height="60"/>
+        <text class="lbl ta" x="110" y="263" text-anchor="middle">A bank 1</text>
+        <text class="sm dim" x="110" y="283" text-anchor="middle">i mod 2 = 1</text>
+
+        <rect class="pe" x="276" y="130" width="104" height="58"/><text class="lbl tp" x="328" y="164" text-anchor="middle">PE 0,0</text>
+        <rect class="pe" x="406" y="130" width="104" height="58"/><text class="lbl tp" x="458" y="164" text-anchor="middle">PE 0,1</text>
+        <rect class="pe" x="536" y="130" width="104" height="58"/><text class="lbl tp" x="588" y="164" text-anchor="middle">PE 0,2</text>
+        <rect class="pe" x="666" y="130" width="104" height="58"/><text class="lbl tp" x="718" y="164" text-anchor="middle">PE 0,3</text>
+        <rect class="pe" x="276" y="240" width="104" height="58"/><text class="lbl tp" x="328" y="274" text-anchor="middle">PE 1,0</text>
+        <rect class="pe" x="406" y="240" width="104" height="58"/><text class="lbl tp" x="458" y="274" text-anchor="middle">PE 1,1</text>
+        <rect class="pe" x="536" y="240" width="104" height="58"/><text class="lbl tp" x="588" y="274" text-anchor="middle">PE 1,2</text>
+        <rect class="pe" x="666" y="240" width="104" height="58"/><text class="lbl tp" x="718" y="274" text-anchor="middle">PE 1,3</text>
+
+        <text class="ta" x="790" y="154">A row 0</text>
+        <text class="ta sm" x="790" y="171">256 + 32 b</text>
+        <text class="ta" x="790" y="264">A row 1</text>
+        <text class="ta sm" x="790" y="281">256 + 32 b</text>
+        <text class="tb sm" x="296" y="100" text-anchor="end">256 + 32 b</text>
+
+        <rect class="box" x="276" y="372" width="494" height="56"/>
+        <text class="lbl tc" x="523" y="396" text-anchor="middle">C RAM: 8 lanes, lane (r, s) for PE r,s</text>
+        <text class="sm dim" x="523" y="416" text-anchor="middle">entry (⌊i/2⌋, ⌊j/4⌋), 512 entries per lane</text>
+        <line class="lc" x1="300" y1="370" x2="300" y2="300" marker-end="url(#f4c)"/>
+        <line class="lc" x1="356" y1="300" x2="356" y2="370" marker-end="url(#f4c)"/>
+        <text class="tc sm" x="292" y="342" text-anchor="end">c, read at issue</text>
+        <text class="tc sm" x="364" y="342">d, written 6 cycles later</text>
+
+        <rect class="box" x="24" y="356" width="172" height="88"/>
+        <text class="lbl" x="110" y="380" text-anchor="middle">sequencer</text>
+        <text class="sm" x="110" y="400" text-anchor="middle">LOAD · ISSUE · DRAIN</text>
+        <text class="sm dim" x="110" y="418" text-anchor="middle">write-back FIFO, 16 entries</text>
+        <line class="edge" x1="196" y1="400" x2="274" y2="400" marker-end="url(#f4f)"/>
+        <line class="edge" x1="110" y1="356" x2="110" y2="300" marker-end="url(#f4f)"/>
+        <text class="sm dim" x="235" y="392" text-anchor="middle">address</text>
+        <text class="sm dim" x="102" y="330" text-anchor="end">address</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 5.</span> The 2 × 4 PE grid and its tile memories. Bank <i>r</i> of <i>A</i> feeds row <i>r</i> of the grid and bank <i>s</i> of <i>B</i> feeds column <i>s</i>. Per operand, a chunk is 256 bits of elements and 32 bits of scales. PE (<i>r</i>, <i>s</i>) reads and writes <i>C</i> lane (<i>r</i>, <i>s</i>). The sequencer also addresses the <i>B</i> banks (not drawn).</figcaption>
+  </figure>
+
+  <figure class="table" id="tab3">
+    <figcaption><span class="cap">Table 3.</span> Organization of the tile memories. <i>kc</i> is the 64-element <i>K</i> chunk (0–3). The tensor core uses 62 RAMB18 in total.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Memory</th><th>Organization</th><th class="r">RAMs</th><th class="r">Entries</th><th>Location</th></tr></thead>
+        <tbody>
+          <tr><td>A elements</td><td>2 banks × 8 word lanes</td><td class="r">16</td><td class="r">128</td><td>row <i>i</i>: bank <i>i</i> mod 2, entry (⌊<i>i</i>/2⌋, <i>kc</i>)</td></tr>
+          <tr><td>A scales</td><td>2 banks × 1 lane</td><td class="r">2</td><td class="r">128</td><td>as the elements</td></tr>
+          <tr><td>B elements</td><td>4 banks × 8 word lanes</td><td class="r">32</td><td class="r">64</td><td>column <i>j</i>: bank <i>j</i> mod 4, entry (⌊<i>j</i>/4⌋, <i>kc</i>)</td></tr>
+          <tr><td>B scales</td><td>4 banks × 1 lane</td><td class="r">4</td><td class="r">64</td><td>as the elements</td></tr>
+          <tr><td>C</td><td>8 lanes</td><td class="r">8</td><td class="r">512</td><td>C[<i>i</i>][<i>j</i>]: lane (<i>i</i> mod 2, <i>j</i> mod 4), entry (⌊<i>i</i>/2⌋, ⌊<i>j</i>/4⌋)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <h3 id="dsp"><span class="num">5.3</span>Products in DSP slices</h3>
+
+  <p>Out of context, the 64 E2M1 products of one PE take 1,280 LUTs, and its four adder trees take 452. A signed product depends on all eight bits of its two codes, more than one 6-input LUT takes, so each product costs about 20 LUTs. In the 2 × 4 grid, the products alone take about 10,000 LUTs, a third of the tensor core. The Artix-7 has 240 DSP48E1 slices, and the rest of the design uses 36 of them, for the nine FP32 multipliers of the vector unit. A slice has a 25-bit pre-adder, a 25 × 18-bit signed multiplier and a 48-bit post-adder <a href="#r10">[10]</a>. With packed operands, one multiply gives four products.</p>
+  <p><span class="run">Packing.</span> Let <i>x̂</i> = 2<i>x</i> denote an E2M1 value as an integer, <i>x̂</i> ∈ {0, ±1, ±2, ±3, ±4, ±6, ±8, ±12}, so that |<i>â b̂</i>| ≤ 144. Let <i>â</i><sub>0</sub> and <i>â</i><sub>1</sub> be element <i>k</i> of rows 0 and 1 of <i>A</i>, and <i>b̂</i><sub>0</sub> and <i>b̂</i><sub>1</sub> element <i>k</i> of columns 2<i>p</i> and 2<i>p</i> + 1 of <i>B</i>. One slice computes</p>
+
+  <div class="eq" id="eq4">
+    <math display="block"><mrow><mo>(</mo><msub><mover accent="true"><mi>b</mi><mo>^</mo></mover><mn>1</mn></msub><mo>⋅</mo><msup><mn>2</mn><mn>20</mn></msup><mo>+</mo><msub><mover accent="true"><mi>b</mi><mo>^</mo></mover><mn>0</mn></msub><mo>)</mo></mrow><mrow><mo>(</mo><msub><mover accent="true"><mi>a</mi><mo>^</mo></mover><mn>1</mn></msub><mo>⋅</mo><msup><mn>2</mn><mn>10</mn></msup><mo>+</mo><msub><mover accent="true"><mi>a</mi><mo>^</mo></mover><mn>0</mn></msub><mo>)</mo></mrow><mo>=</mo><msub><mover accent="true"><mi>a</mi><mo>^</mo></mover><mn>1</mn></msub><msub><mover accent="true"><mi>b</mi><mo>^</mo></mover><mn>1</mn></msub><mo>⋅</mo><msup><mn>2</mn><mn>30</mn></msup><mo>+</mo><msub><mover accent="true"><mi>a</mi><mo>^</mo></mover><mn>0</mn></msub><msub><mover accent="true"><mi>b</mi><mo>^</mo></mover><mn>1</mn></msub><mo>⋅</mo><msup><mn>2</mn><mn>20</mn></msup><mo>+</mo><msub><mover accent="true"><mi>a</mi><mo>^</mo></mover><mn>1</mn></msub><msub><mover accent="true"><mi>b</mi><mo>^</mo></mover><mn>0</mn></msub><mo>⋅</mo><msup><mn>2</mn><mn>10</mn></msup><mo>+</mo><msub><mover accent="true"><mi>a</mi><mo>^</mo></mover><mn>0</mn></msub><msub><mover accent="true"><mi>b</mi><mo>^</mo></mover><mn>0</mn></msub><mo>,</mo></math>
+    <span class="eqn">(4)</span>
+  </div>
+
+  <p>the 2 × 2 block of products of element <i>k</i>, in four 10-bit fields (<a href="#fig6">Figure 6</a>). This is the long multiplication of school arithmetic: the two factors are short numbers placed far apart in one wide word, so the partial products do not overlap. The pre-adder forms the first factor from ports D and A. LUTs form the second factor from the two rows of <i>A</i>; it enters port B, and both column pairs share it. Two slices add elements 2<i>i</i> and 2<i>i</i> + 1 and a bias β:</p>
+
+  <div class="eq" id="eq5">
+    <math display="block"><msub><mi>P</mi><mi>i</mi></msub><mo>=</mo><msub><mi>M</mi><mrow><mn>2</mn><mi>i</mi></mrow></msub><mo>+</mo><msub><mi>M</mi><mrow><mn>2</mn><mi>i</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>+</mo><mi>β</mi><mo>,</mo><mspace width="1em"></mspace><mi>β</mi><mo>=</mo><mn>512</mn><mspace width="0.15em"></mspace><mrow><mo>(</mo><mn>1</mn><mo>+</mo><msup><mn>2</mn><mn>10</mn></msup><mo>+</mo><msup><mn>2</mn><mn>20</mn></msup><mo>+</mo><msup><mn>2</mn><mn>30</mn></msup><mo>)</mo></mrow><mo>.</mo></math>
+    <span class="eqn">(5)</span>
+  </div>
+
+  <p>A sum of two products lies in [−288, 288], so each field of <i>P<sub>i</sub></i> holds a pair sum plus 512, in [224, 800]. No field is negative, so no field borrows from the one above it, and <i>P<sub>i</sub></i> is four unsigned 10-bit fields side by side. For one output and one block, eight fields add to 4<i>σ<sub>g</sub></i> + 4096, which lies in [0, 8192). Inverting bit 12 of this sum gives 4<i>σ<sub>g</sub></i> in two's complement. The tree of unsigned fields costs 55 LUTs per block sum; a tree of signed fields, with a carry-in to correct each borrow, costs 74.</p>
+  <p><span class="run">Slice pair.</span> <a href="#fig7">Figure 7</a> shows a slice pair as Vivado maps it. The first slice multiplies element 2<i>i</i> + 1, and the fabric routes its product to the C port of the second slice. The second slice multiplies element 2<i>i</i> and adds the two products. A carry chain in the fabric adds β, and 40 flip-flops hold the result. Without β, Vivado places this adder and register in the second slice; with the constant β, it keeps both in the fabric. No slice register is used, so the products stay in stage 1 and the PE latency stays five cycles. The block-sum trees move to the start of stage 2, before the multiply by <i>S</i><sub>A</sub><i>S</i><sub>B</sub>.</p>
+  <p><span class="run">Grid.</span> The grid has two column pairs and 32 element pairs per chunk, so 2 × 32 × 2 = 128 slices compute its 512 products per cycle (<a href="#fig8">Figure 8</a>). Each output needs 16 slices for its products and 4 for its block terms (<a href="#tab4">Table 4</a>). A power-of-two grid larger than 2 × 4 therefore does not fit in DSP slices; the parameter <code>DSP = 0</code> of <code>nvfp4_tc</code> restores the LUT products for such grids. Both builds give the same outputs. In two builds with the same bus, the DSP products cut the tensor core from 31,496 to 21,312 LUTs (32%).</p>
+
+  <figure class="wide" id="fig6">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 920 296" role="img" aria-label="Bit layout of one slice. Port D holds b-hat-1 at bits 24 to 20. Port A holds b-hat-0, sign-extended. Port B holds a-hat-1 at bits 17 to 10 and a-hat-0 at bits 9 to 0. The bias beta has a one at bits 9, 19, 29 and 39. The 40-bit sum P i has four 10-bit fields, each a pair sum of one product plus 512, for outputs d 0 2p, d 1 2p, d 0 2p+1 and d 1 2p+1.">
+        <text class="lbl" x="10" y="48">port D</text><text class="sm dim" x="10" y="62">column 2p + 1</text>
+        <rect class="box" x="525" y="32" width="75" height="28"/><text class="lbl tb" x="562.5" y="51" text-anchor="middle">b̂₁</text>
+        <rect class="bit" x="600" y="32" width="300" height="28"/><text class="dim" x="750" y="51" text-anchor="middle">0</text>
+        <text class="lbl" x="10" y="90">port A</text><text class="sm dim" x="10" y="104">column 2p</text>
+        <rect class="bit" x="525" y="74" width="300" height="28"/><text class="sm dim" x="675" y="92" text-anchor="middle">sign of b̂₀</text>
+        <rect class="box" x="825" y="74" width="75" height="28"/><text class="lbl tb" x="862.5" y="93" text-anchor="middle">b̂₀</text>
+        <text class="lbl" x="10" y="140">port B</text><text class="sm dim" x="10" y="154">rows 0, 1 (LUTs)</text>
+        <rect class="box" x="630" y="124" width="120" height="28"/><text class="lbl ta" x="690" y="143" text-anchor="middle">â₁</text>
+        <rect class="box" x="750" y="124" width="150" height="28"/><text class="lbl ta" x="825" y="143" text-anchor="middle">â₀</text>
+        <text class="lbl" x="10" y="186">β</text><text class="sm dim" x="10" y="200">512 per field</text>
+        <line class="grid" x1="300" y1="192" x2="900" y2="192"/>
+        <rect class="fld" x="750" y="182" width="15" height="18"/><text class="sm" x="757.5" y="195" text-anchor="middle">1</text>
+        <rect class="fld" x="600" y="182" width="15" height="18"/><text class="sm" x="607.5" y="195" text-anchor="middle">1</text>
+        <rect class="fld" x="450" y="182" width="15" height="18"/><text class="sm" x="457.5" y="195" text-anchor="middle">1</text>
+        <rect class="fld" x="300" y="182" width="15" height="18"/><text class="sm" x="307.5" y="195" text-anchor="middle">1</text>
+        <text class="lbl" x="10" y="232">P<tspan class="sub" dy="3">i</tspan></text><text class="sm dim" x="10" y="248">2 elements + β</text>
+        <rect class="bit" x="180" y="214" width="120" height="40"/><text class="dim" x="240" y="238" text-anchor="middle">0</text>
+        <rect class="fld" x="300" y="214" width="150" height="40"/><text class="" x="375" y="231" text-anchor="middle">Σ â₁b̂₁ + 512</text><text class="sm dim" x="375" y="246" text-anchor="middle">→ d₁,₂ₚ₊₁</text>
+        <rect class="fld" x="450" y="214" width="150" height="40"/><text class="" x="525" y="231" text-anchor="middle">Σ â₀b̂₁ + 512</text><text class="sm dim" x="525" y="246" text-anchor="middle">→ d₀,₂ₚ₊₁</text>
+        <rect class="fld" x="600" y="214" width="150" height="40"/><text class="" x="675" y="231" text-anchor="middle">Σ â₁b̂₀ + 512</text><text class="sm dim" x="675" y="246" text-anchor="middle">→ d₁,₂ₚ</text>
+        <rect class="fld" x="750" y="214" width="150" height="40"/><text class="" x="825" y="231" text-anchor="middle">Σ â₀b̂₀ + 512</text><text class="sm dim" x="825" y="246" text-anchor="middle">→ d₀,₂ₚ</text>
+        <line class="axis" x1="180" y1="266" x2="900" y2="266"/>
+        <line class="axis" x1="892.5" y1="266" x2="892.5" y2="271"/><text class="sm" x="892.5" y="284" text-anchor="middle">0</text>
+        <line class="axis" x1="742.5" y1="266" x2="742.5" y2="271"/><text class="sm" x="742.5" y="284" text-anchor="middle">10</text>
+        <line class="axis" x1="592.5" y1="266" x2="592.5" y2="271"/><text class="sm" x="592.5" y="284" text-anchor="middle">20</text>
+        <line class="axis" x1="442.5" y1="266" x2="442.5" y2="271"/><text class="sm" x="442.5" y="284" text-anchor="middle">30</text>
+        <line class="axis" x1="292.5" y1="266" x2="292.5" y2="271"/><text class="sm" x="292.5" y="284" text-anchor="middle">40</text>
+        <line class="axis" x1="187.5" y1="266" x2="187.5" y2="271"/><text class="sm" x="187.5" y="284" text-anchor="middle">47</text>
+        <text class="sm dim" x="10" y="284">bit</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 6.</span> Operand packing for element <i>k</i> and the column pair (2<i>p</i>, 2<i>p</i> + 1), to bit scale. The pre-adder forms <i>b̂</i><sub>1</sub>·2<sup>20</sup> + <i>b̂</i><sub>0</sub> from ports D and A. Port B carries <i>â</i><sub>1</sub>·2<sup>10</sup> + <i>â</i><sub>0</sub>; when <i>â</i><sub>0</sub> &lt; 0, its upper field holds <i>â</i><sub>1</sub> − 1, as in any two's-complement sum. Bottom: the sum <i>P<sub>i</sub></i> of Eq.&nbsp;(<a href="#eq5">5</a>). The field of row <i>r</i> and column 2<i>p</i> + <i>t</i> lies at bit 10(<i>r</i> + 2<i>t</i>) and feeds output <i>d<sub>r</sub></i><sub>, 2<i>p</i>+<i>t</i></sub>.</figcaption>
+  </figure>
+
+  <figure class="wide" id="fig7">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 920 300" role="img" aria-label="Two DSP48E1 slices. Each takes b-hat-1 times 2 to the 20 on port D and b-hat-0 on port A into its pre-adder, and the packed A operand on port B into its 25 by 18 multiplier. The first slice, for element 2i plus 1, has Z equal to 0, and its 43-bit product is routed through the fabric to the C port of the second slice, for element 2i, which adds its own product. A fabric carry chain adds beta, and 40 flip-flops register the sum, whose four 10-bit fields go to the block-sum trees.">
+        <defs>
+          <marker id="f6a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="f6b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ahb" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="f6c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="aha" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+        <rect class="chip" x="150" y="22" width="410" height="126" rx="4"/>
+        <text class="lbl" x="162" y="40">DSP48E1 · element 2i + 1</text>
+        <text class="sm dim" x="550" y="142" text-anchor="end">AREG = BREG = MREG = PREG = 0</text>
+        <text class="tb" x="14" y="66">b̂₁ · 2²⁰</text>
+        <line class="eb" x1="100" y1="62" x2="196" y2="62" marker-end="url(#f6b)"/>
+        <text class="sm dim" x="182" y="57">D</text>
+        <text class="tb" x="14" y="92">b̂₀</text>
+        <line class="eb" x1="100" y1="88" x2="196" y2="88" marker-end="url(#f6b)"/>
+        <text class="sm dim" x="182" y="83">A</text>
+        <text class="ta" x="14" y="126">â₁ · 2¹⁰ + â₀</text>
+        <line class="ea" x1="100" y1="122" x2="296" y2="122" marker-end="url(#f6c)"/>
+        <text class="sm dim" x="282" y="117">B</text>
+        <rect class="box" x="200" y="50" width="64" height="50"/>
+        <text class="lbl" x="232" y="72" text-anchor="middle">D + A</text>
+        <text class="sm dim" x="232" y="89" text-anchor="middle">pre-adder</text>
+        <line class="edge" x1="264" y1="75" x2="296" y2="75" marker-end="url(#f6a)"/>
+        <text class="sm dim" x="280" y="69" text-anchor="middle">25 b</text>
+        <rect class="box" x="300" y="54" width="66" height="82"/>
+        <text class="op" x="333" y="100" text-anchor="middle">×</text>
+        <text class="sm dim" x="333" y="120" text-anchor="middle">25 × 18</text>
+        <line class="edge" x1="366" y1="95" x2="398" y2="95" marker-end="url(#f6a)"/>
+        <rect class="box" x="400" y="70" width="70" height="50"/>
+        <text class="op" x="435" y="98" text-anchor="middle">+</text>
+        <text class="sm dim" x="435" y="114" text-anchor="middle">Z = 0</text>
+        <polyline class="edge" points="470,95 592,95 592,156 436,156 436,206" marker-end="url(#f6a)"/>
+        <text class="sm" x="512" y="88" text-anchor="middle">M<tspan class="sub" dy="3">2i+1</tspan><tspan dy="-3">, 43 b</tspan></text>
+        <text class="sm dim" x="600" y="128">fabric</text>
+        <rect class="chip" x="150" y="162" width="410" height="126" rx="4"/>
+        <text class="lbl" x="162" y="180">DSP48E1 · element 2i</text>
+        <text class="sm dim" x="550" y="282" text-anchor="end">AREG = BREG = MREG = PREG = 0</text>
+        <text class="tb" x="14" y="206">b̂₁ · 2²⁰</text>
+        <line class="eb" x1="100" y1="202" x2="196" y2="202" marker-end="url(#f6b)"/>
+        <text class="sm dim" x="182" y="197">D</text>
+        <text class="tb" x="14" y="232">b̂₀</text>
+        <line class="eb" x1="100" y1="228" x2="196" y2="228" marker-end="url(#f6b)"/>
+        <text class="sm dim" x="182" y="223">A</text>
+        <text class="ta" x="14" y="266">â₁ · 2¹⁰ + â₀</text>
+        <line class="ea" x1="100" y1="262" x2="296" y2="262" marker-end="url(#f6c)"/>
+        <text class="sm dim" x="282" y="257">B</text>
+        <rect class="box" x="200" y="190" width="64" height="50"/>
+        <text class="lbl" x="232" y="212" text-anchor="middle">D + A</text>
+        <text class="sm dim" x="232" y="229" text-anchor="middle">pre-adder</text>
+        <line class="edge" x1="264" y1="215" x2="296" y2="215" marker-end="url(#f6a)"/>
+        <text class="sm dim" x="280" y="209" text-anchor="middle">25 b</text>
+        <rect class="box" x="300" y="194" width="66" height="82"/>
+        <text class="op" x="333" y="240" text-anchor="middle">×</text>
+        <text class="sm dim" x="333" y="260" text-anchor="middle">25 × 18</text>
+        <line class="edge" x1="366" y1="235" x2="398" y2="235" marker-end="url(#f6a)"/>
+        <rect class="box" x="400" y="210" width="70" height="50"/>
+        <text class="op" x="435" y="238" text-anchor="middle">+</text>
+        <text class="sm dim" x="435" y="254" text-anchor="middle">Z = C</text>
+        <text class="sm dim" x="444" y="202">C</text>
+        <line class="edge" x1="470" y1="235" x2="598" y2="235" marker-end="url(#f6a)"/>
+        <text class="sm dim" x="636" y="204" text-anchor="middle">fabric</text>
+        <rect class="box" x="600" y="211" width="72" height="48"/>
+        <text class="lbl" x="636" y="232" text-anchor="middle">+ β</text>
+        <text class="sm dim" x="636" y="249" text-anchor="middle">carry chain</text>
+        <line class="edge" x1="672" y1="235" x2="694" y2="235" marker-end="url(#f6a)"/>
+        <rect class="reg" x="696" y="196" width="6" height="78"/>
+        <text class="sm dim" x="699" y="190" text-anchor="middle">40 FFs</text>
+        <line class="edge" x1="702" y1="206" x2="728" y2="206" marker-end="url(#f6a)"/>
+        <line class="edge" x1="702" y1="224" x2="728" y2="224" marker-end="url(#f6a)"/>
+        <line class="edge" x1="702" y1="242" x2="728" y2="242" marker-end="url(#f6a)"/>
+        <line class="edge" x1="702" y1="260" x2="728" y2="260" marker-end="url(#f6a)"/>
+        <text class="sm" x="734" y="210">9–0: â₀b̂₀ → d₀,₂ₚ</text>
+        <text class="sm" x="734" y="228">19–10: â₁b̂₀ → d₁,₂ₚ</text>
+        <text class="sm" x="734" y="246">29–20: â₀b̂₁ → d₀,₂ₚ₊₁</text>
+        <text class="sm" x="734" y="264">39–30: â₁b̂₁ → d₁,₂ₚ₊₁</text>
+        <text class="sm dim" x="734" y="290">to the block-sum trees</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 7.</span> One slice pair in the routed design. Purple: <i>B</i> operands; blue: the packed <i>A</i> operand. The internal registers of both slices are unused, so the decode LUTs, both slices and the β adder form one combinational path from the RAM outputs to the 40-bit stage-1 register. This path is the critical path of the release build (§9).</figcaption>
+  </figure>
+
+  <figure class="wide" id="fig8">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 920 420" role="img" aria-label="The 2 by 4 grid with DSP products. A banks 0 and 1 feed a pack block that forms the B-port word for 64 elements; it feeds both column pairs. B banks 0 and 1 feed a decode block and column pair 0; B banks 2 and 3 feed column pair 1. Each column pair is 32 slice pairs, 64 DSP48E1, producing 32 40-bit field words into the stage-1 register. In stages 2 to 5, block-sum trees for 4 outputs by 4 blocks feed four copies of fp4_fedp_acc, which also take the scales and c, and produce the outputs d to the C lanes.">
+        <defs>
+          <marker id="f7a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="f7b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ahb" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="f7c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="aha" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+        <text class="lbl dim" x="245" y="20" text-anchor="middle">Stage 1</text>
+        <text class="lbl dim" x="650" y="20" text-anchor="middle">Stages 2–5</text>
+        <rect class="reg" x="482" y="30" width="6" height="362"/>
+        <rect class="box" x="10" y="44" width="108" height="34"/>
+        <text class="lbl tb" x="64" y="66" text-anchor="middle">B bank 0</text>
+        <line class="eb" x1="118" y1="61" x2="144" y2="61" marker-end="url(#f7b)"/>
+        <rect class="box" x="10" y="88" width="108" height="34"/>
+        <text class="lbl tb" x="64" y="110" text-anchor="middle">B bank 1</text>
+        <line class="eb" x1="118" y1="105" x2="144" y2="105" marker-end="url(#f7b)"/>
+        <rect class="box" x="146" y="44" width="120" height="78"/>
+        <text class="lbl" x="206" y="66" text-anchor="middle">decode</text>
+        <text class="sm" x="206" y="84" text-anchor="middle">E2M1 → b̂, 5 b</text>
+        <text class="sm dim" x="206" y="100" text-anchor="middle">2 columns × 64</text>
+        <line class="eb" x1="266" y1="84" x2="294" y2="84" marker-end="url(#f7b)"/>
+        <rect class="box" x="304" y="40" width="170" height="128"/>
+        <rect class="box" x="300" y="44" width="170" height="128"/>
+        <rect class="box" x="296" y="48" width="170" height="128"/>
+        <text class="lbl" x="306" y="70">column pair 0</text>
+        <text class="sm" x="306" y="88">columns 0 and 1</text>
+        <text class="sm" x="306" y="124">32 slice pairs</text>
+        <text class="lbl" x="306" y="142">64 DSP48E1</text>
+        <text class="sm dim" x="306" y="164">32 × 40-bit field words</text>
+        <line class="edge" x1="474" y1="112" x2="481" y2="112" marker-end="url(#f7a)"/>
+        <line class="edge" x1="488" y1="112" x2="504" y2="112" marker-end="url(#f7a)"/>
+        <rect class="box" x="506" y="60" width="132" height="104"/>
+        <text class="lbl" x="572" y="82" text-anchor="middle">block-sum trees</text>
+        <text class="sm" x="572" y="100" text-anchor="middle">4 outputs × 4 blocks</text>
+        <text class="sm" x="572" y="116" text-anchor="middle">8 fields each</text>
+        <text class="sm dim" x="572" y="142" text-anchor="middle">→ 4σ<tspan class="sub" dy="3">g</tspan><tspan dy="-3">, bit 12 inverted</tspan></text>
+        <line class="edge" x1="638" y1="112" x2="664" y2="112" marker-end="url(#f7a)"/>
+        <rect class="pe" x="666" y="60" width="130" height="104"/>
+        <text class="lbl mono tp" x="731" y="84" text-anchor="middle">fp4_fedp_acc</text>
+        <text class="sm" x="731" y="102" text-anchor="middle">× 4</text>
+        <text class="sm dim" x="731" y="124" text-anchor="middle">scales, align,</text>
+        <text class="sm dim" x="731" y="140" text-anchor="middle">Σ, cut to FP32</text>
+        <line class="edge" x1="796" y1="80" x2="822" y2="80" marker-end="url(#f7a)"/>
+        <text class="sm" x="828" y="84">d₀,₀</text>
+        <line class="edge" x1="796" y1="100" x2="822" y2="100" marker-end="url(#f7a)"/>
+        <text class="sm" x="828" y="104">d₁,₀</text>
+        <line class="edge" x1="796" y1="120" x2="822" y2="120" marker-end="url(#f7a)"/>
+        <text class="sm" x="828" y="124">d₀,₁</text>
+        <line class="edge" x1="796" y1="140" x2="822" y2="140" marker-end="url(#f7a)"/>
+        <text class="sm" x="828" y="144">d₁,₁</text>
+        <text class="sm dim" x="866" y="116">to C</text>
+        <rect class="box" x="10" y="234" width="108" height="34"/>
+        <text class="lbl tb" x="64" y="256" text-anchor="middle">B bank 2</text>
+        <line class="eb" x1="118" y1="251" x2="144" y2="251" marker-end="url(#f7b)"/>
+        <rect class="box" x="10" y="278" width="108" height="34"/>
+        <text class="lbl tb" x="64" y="300" text-anchor="middle">B bank 3</text>
+        <line class="eb" x1="118" y1="295" x2="144" y2="295" marker-end="url(#f7b)"/>
+        <rect class="box" x="146" y="234" width="120" height="78"/>
+        <text class="lbl" x="206" y="256" text-anchor="middle">decode</text>
+        <text class="sm" x="206" y="274" text-anchor="middle">E2M1 → b̂, 5 b</text>
+        <text class="sm dim" x="206" y="290" text-anchor="middle">2 columns × 64</text>
+        <line class="eb" x1="266" y1="274" x2="294" y2="274" marker-end="url(#f7b)"/>
+        <rect class="box" x="304" y="230" width="170" height="128"/>
+        <rect class="box" x="300" y="234" width="170" height="128"/>
+        <rect class="box" x="296" y="238" width="170" height="128"/>
+        <text class="lbl" x="306" y="260">column pair 1</text>
+        <text class="sm" x="306" y="278">columns 2 and 3</text>
+        <text class="sm" x="306" y="314">32 slice pairs</text>
+        <text class="lbl" x="306" y="332">64 DSP48E1</text>
+        <text class="sm dim" x="306" y="354">32 × 40-bit field words</text>
+        <line class="edge" x1="474" y1="302" x2="481" y2="302" marker-end="url(#f7a)"/>
+        <line class="edge" x1="488" y1="302" x2="504" y2="302" marker-end="url(#f7a)"/>
+        <rect class="box" x="506" y="250" width="132" height="104"/>
+        <text class="lbl" x="572" y="272" text-anchor="middle">block-sum trees</text>
+        <text class="sm" x="572" y="290" text-anchor="middle">4 outputs × 4 blocks</text>
+        <text class="sm" x="572" y="306" text-anchor="middle">8 fields each</text>
+        <text class="sm dim" x="572" y="332" text-anchor="middle">→ 4σ<tspan class="sub" dy="3">g</tspan><tspan dy="-3">, bit 12 inverted</tspan></text>
+        <line class="edge" x1="638" y1="302" x2="664" y2="302" marker-end="url(#f7a)"/>
+        <rect class="pe" x="666" y="250" width="130" height="104"/>
+        <text class="lbl mono tp" x="731" y="274" text-anchor="middle">fp4_fedp_acc</text>
+        <text class="sm" x="731" y="292" text-anchor="middle">× 4</text>
+        <text class="sm dim" x="731" y="314" text-anchor="middle">scales, align,</text>
+        <text class="sm dim" x="731" y="330" text-anchor="middle">Σ, cut to FP32</text>
+        <line class="edge" x1="796" y1="270" x2="822" y2="270" marker-end="url(#f7a)"/>
+        <text class="sm" x="828" y="274">d₀,₂</text>
+        <line class="edge" x1="796" y1="290" x2="822" y2="290" marker-end="url(#f7a)"/>
+        <text class="sm" x="828" y="294">d₁,₂</text>
+        <line class="edge" x1="796" y1="310" x2="822" y2="310" marker-end="url(#f7a)"/>
+        <text class="sm" x="828" y="314">d₀,₃</text>
+        <line class="edge" x1="796" y1="330" x2="822" y2="330" marker-end="url(#f7a)"/>
+        <text class="sm" x="828" y="334">d₁,₃</text>
+        <text class="sm dim" x="866" y="306">to C</text>
+        <text class="sm dim" x="731" y="40" text-anchor="middle">sfa, sfb, c</text>
+        <line class="edge" x1="731" y1="45" x2="731" y2="58" marker-end="url(#f7a)"/>
+        <text class="sm dim" x="731" y="382" text-anchor="middle">sfa, sfb, c</text>
+        <line class="edge" x1="731" y1="370" x2="731" y2="356" marker-end="url(#f7a)"/>
+        <rect class="box" x="10" y="144" width="108" height="30"/>
+        <text class="lbl ta" x="64" y="164" text-anchor="middle">A bank 0</text>
+        <line class="ea" x1="118" y1="159" x2="144" y2="159" marker-end="url(#f7c)"/>
+        <rect class="box" x="10" y="182" width="108" height="30"/>
+        <text class="lbl ta" x="64" y="202" text-anchor="middle">A bank 1</text>
+        <line class="ea" x1="118" y1="197" x2="144" y2="197" marker-end="url(#f7c)"/>
+        <rect class="box" x="146" y="140" width="120" height="76"/>
+        <text class="lbl" x="206" y="160" text-anchor="middle">pack</text>
+        <text class="sm" x="206" y="178" text-anchor="middle">â₁ · 2¹⁰ + â₀</text>
+        <text class="sm dim" x="206" y="196" text-anchor="middle">64 words, 18 b</text>
+        <polyline class="ea" points="266,178 281,178 281,150 294,150" marker-end="url(#f7c)"/>
+        <polyline class="ea" points="281,178 281,250 294,250" marker-end="url(#f7c)"/>
+        <text class="sm dim" x="245" y="410" text-anchor="middle">128 DSP48E1 for the products</text>
+        <text class="sm dim" x="650" y="410" text-anchor="middle">32 DSP48E1 for the block terms</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 8.</span> The 2 × 4 grid with the products in DSP slices (<code>fp4_fedp_dsp</code>). The packed <i>A</i> operand is formed once and feeds both column pairs. The grey bar is the stage-1 register of Figure&nbsp;3. Stages 2–5 are those of Figure&nbsp;3, one copy per output, with the tree replacing the stage-1 block sum. Not drawn: the all-zero check per output, which reads the element codes directly.</figcaption>
+  </figure>
+
+  <figure class="table" id="tab4">
+    <figcaption><span class="cap">Table 4.</span> Use of the 240 DSP48E1 slices of the <code>xc7a100t</code>.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Function</th><th>Operands</th><th class="r">Per output</th><th class="r">Slices</th></tr></thead>
+        <tbody>
+          <tr><td>E2M1 products, Eqs.&nbsp;(4)–(5)</td><td>25 × 18 b, pre-adder</td><td class="r">16</td><td class="r">128</td></tr>
+          <tr><td>Block terms <i>T<sub>g</sub></i> = 4<i>σ<sub>g</sub></i>·<i>S</i><sub>A</sub><i>S</i><sub>B</sub></td><td>13 × 9 b</td><td class="r">4</td><td class="r">32</td></tr>
+          <tr><td>Vector unit: nine FP32 ALUs, one 32 × 32-bit multiplier each</td><td>32 × 32 b</td><td class="r">–</td><td class="r">36</td></tr>
+          <tr class="mid"><td>Total</td><td></td><td class="r"></td><td class="r nw">196 (82%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <h3 id="schedule"><span class="num">5.4</span>Dataflow and scheduling</h3>
+
+  <p>The sequencer runs the weight-stationary loop nest of <a href="#alg1">Algorithm 1</a>. "Weight-stationary" means that the operand <i>B</i>, which holds the weights of a neural-network layer, stays in place while the rows of <i>A</i> stream past it. For each block of four columns of <i>B</i> and each <i>K</i> chunk, the sequencer reads that chunk of <i>B</i> once and holds it in the RAM output registers. It then issues one block of two rows of <i>A</i> per cycle against the held weights. An issue reads <i>A</i> and <i>C</i> at cycle <i>t</i>. The PEs receive the operands at <i>t</i> + 1, and the sequencer writes the result to <i>C</i> at <i>t</i> + 6 (<a href="#fig9">Figure 9</a>, top). A 16-entry write-back FIFO carries the <i>C</i> address of each operation in flight.</p>
+
+  <figure class="alg" id="alg1">
+    <figcaption><span class="cap">Algorithm 1.</span> Weight-stationary schedule of one START. Comments give the cost in cycles.</figcaption>
+    <ol>
+      <li><span class="kw">input:</span> dimensions (<i>M</i>, <i>N</i>, <i>K</i>), mode, OVERWRITE</li>
+      <li><span class="kw">for</span> <i>jb</i> ← 0 <span class="kw">to</span> <i>N</i>/4 − 1 <span class="kw">do</span> <span class="cm">▷ column block of B and C</span></li>
+      <li style="--d:1"><span class="kw">for</span> <i>kc</i> ← 0 <span class="kw">to</span> ⌈<i>K</i>/64⌉ − 1 <span class="kw">do</span> <span class="cm">▷ K chunk</span></li>
+      <li style="--d:2">LOAD B[<i>jb</i>, <i>kc</i>] into the B RAM output registers <span class="cm">▷ 1</span></li>
+      <li style="--d:2"><i>mask</i> ← (<i>K</i> mod 64 = 32) ∧ (<i>kc</i> = ⌈<i>K</i>/64⌉ − 1) <span class="cm">▷ K tail</span></li>
+      <li style="--d:2"><span class="kw">for</span> <i>ib</i> ← 0 <span class="kw">to</span> <i>M</i>/2 − 1 <span class="kw">do</span> <span class="cm">▷ 1 each</span></li>
+      <li style="--d:3">ISSUE: read A[<i>ib</i>, <i>kc</i>] and C[<i>ib</i>, <i>jb</i>]; push (<i>ib</i>, <i>jb</i>) to the write-back FIFO</li>
+      <li style="--d:3"><i>c</i> ← 0 <span class="kw">if</span> OVERWRITE ∧ <i>kc</i> = 0 <span class="kw">else</span> C[<i>ib</i>, <i>jb</i>]</li>
+      <li style="--d:3">C[<i>ib</i>, <i>jb</i>] ← PE(A[<i>ib</i>, <i>kc</i>], B[<i>jb</i>, <i>kc</i>], <i>c</i>, <i>mask</i>) on all 2 × 4 PEs <span class="cm">▷ written at issue + 6</span></li>
+      <li style="--d:2">DRAIN until no operation is in flight <span class="cm">▷ 7</span></li>
+    </ol>
+  </figure>
+
+  <p><span class="run">Hazards.</span> The next <i>K</i> chunk reads the <i>C</i> entries that the current chunk writes. The sequencer does not forward results. Instead, it drains the pipeline before it advances <i>K</i>. The drain costs seven cycles per group and keeps the core correct for every <i>M</i>, including <i>M</i> = 2, where the same <i>C</i> entry is read and written in consecutive groups. A run takes</p>
+
+  <div class="eq" id="eq6">
+    <math display="block"><msub><mi>T</mi><mtext>run</mtext></msub><mo>=</mo><mfrac><mi>N</mi><mn>4</mn></mfrac><mo>⋅</mo><mrow><mo stretchy="true">⌈</mo><mfrac><mi>K</mi><mn>64</mn></mfrac><mo stretchy="true">⌉</mo></mrow><mo>⋅</mo><mrow><mo stretchy="true">(</mo><mfrac><mi>M</mi><mn>2</mn></mfrac><mo>+</mo><mn>8</mn><mo stretchy="true">)</mo></mrow><mspace width="0.4em"></mspace><mtext>cycles</mtext><mo>.</mo></math>
+    <span class="eqn">(6)</span>
+  </div>
+
+  <p>A full 64 × 64 × 256 tile takes 2,560 cycles (51.2&nbsp;µs), of which 2,048 are issue cycles (<a href="#fig9">Figure 9</a>, bottom). Small tiles pay the load and drain cost per group: a run with <i>M</i> = 2 issues in one cycle of every nine.</p>
+  <p><span class="run">K tails.</span> The memory layout fixes the chunk at 64 elements, but <i>K</i> may be any multiple of 32. When <i>K</i> = 64<i>n</i> + 32, the sequencer marks the last chunk (line&nbsp;5 of <a href="#alg1">Algorithm 1</a>). The grid then zeroes the elements of <i>A</i> past <i>K</i> and the scales of <i>A</i> and <i>B</i> past <i>K</i>. In MXFP4 with 32-element blocks, only scale byte 0 is kept. The zero elements make the padding products zero. The zero scales give the padding blocks exponent −252. This is below <i>X<sub>c</sub></i> ≥ −126, so the padding cannot move <i>e</i><sub>max</sub> in Eq.&nbsp;(<a href="#eq3">3</a>). The result equals an <code>m16n8k64</code> MMA on operands zero-padded with zero scales. The transformer layer depends on this case, because its products have <i>K</i> = 32.</p>
+
+  <figure class="wide" id="fig9">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 880 250" role="img" aria-label="Top: one operation is issued at cycle t, enters the PE pipeline at t plus 1, and is written to C at t plus 6. Bottom, to scale: one column block of a full tile, four K chunks each made of a 1-cycle B load, 32 issue cycles and a 7-cycle drain, 160 cycles in total.">
+        <text class="lbl" x="16" y="24">One operation</text>
+        <line class="grid" x1="130" y1="40" x2="130" y2="104"/>
+        <line class="grid" x1="230" y1="40" x2="230" y2="104"/>
+        <line class="grid" x1="330" y1="40" x2="330" y2="104"/>
+        <line class="grid" x1="430" y1="40" x2="430" y2="104"/>
+        <line class="grid" x1="530" y1="40" x2="530" y2="104"/>
+        <line class="grid" x1="630" y1="40" x2="630" y2="104"/>
+        <line class="grid" x1="730" y1="40" x2="730" y2="104"/>
+        <line class="grid" x1="830" y1="40" x2="830" y2="104"/>
+        <text class="sm dim" x="180" y="118" text-anchor="middle">t</text>
+        <text class="sm dim" x="280" y="118" text-anchor="middle">t + 1</text>
+        <text class="sm dim" x="380" y="118" text-anchor="middle">t + 2</text>
+        <text class="sm dim" x="480" y="118" text-anchor="middle">t + 3</text>
+        <text class="sm dim" x="580" y="118" text-anchor="middle">t + 4</text>
+        <text class="sm dim" x="680" y="118" text-anchor="middle">t + 5</text>
+        <text class="sm dim" x="780" y="118" text-anchor="middle">t + 6</text>
+        <rect class="box" x="134" y="48" width="92" height="40"/>
+        <text class="sm" x="180" y="72" text-anchor="middle">issue, RAM read</text>
+        <rect class="pe" x="234" y="48" width="492" height="40"/>
+        <text class="lbl tp" x="480" y="73" text-anchor="middle">PE pipeline, stages 1–5</text>
+        <rect class="box" x="734" y="48" width="92" height="40"/>
+        <text class="sm tc" x="780" y="72" text-anchor="middle">write C</text>
+
+        <text class="lbl" x="16" y="146">One column block of a full tile, to scale</text>
+        <rect class="box" x="70" y="172" width="4.75" height="26"/>
+        <rect class="bar" x="74.75" y="172" width="152" height="26"/>
+        <rect class="drain" x="226.75" y="172" width="33.25" height="26"/>
+        <text class="sm onbar" x="150.75" y="189" text-anchor="middle">K chunk 0</text>
+        <rect class="box" x="260" y="172" width="4.75" height="26"/>
+        <rect class="bar" x="264.75" y="172" width="152" height="26"/>
+        <rect class="drain" x="416.75" y="172" width="33.25" height="26"/>
+        <text class="sm onbar" x="340.75" y="189" text-anchor="middle">K chunk 1</text>
+        <rect class="box" x="450" y="172" width="4.75" height="26"/>
+        <rect class="bar" x="454.75" y="172" width="152" height="26"/>
+        <rect class="drain" x="606.75" y="172" width="33.25" height="26"/>
+        <text class="sm onbar" x="530.75" y="189" text-anchor="middle">K chunk 2</text>
+        <rect class="box" x="640" y="172" width="4.75" height="26"/>
+        <rect class="bar" x="644.75" y="172" width="152" height="26"/>
+        <rect class="drain" x="796.75" y="172" width="33.25" height="26"/>
+        <text class="sm onbar" x="720.75" y="189" text-anchor="middle">K chunk 3</text>
+        <text class="sm dim" x="72" y="166">load B</text>
+        <text class="sm tc" x="243.4" y="166" text-anchor="middle">drain</text>
+
+        <line class="axis" x1="70" y1="204" x2="830" y2="204"/>
+        <line class="axis" x1="70" y1="204" x2="70" y2="209"/><text class="sm" x="70" y="222" text-anchor="middle">0</text>
+        <line class="axis" x1="260" y1="204" x2="260" y2="209"/><text class="sm" x="260" y="222" text-anchor="middle">40</text>
+        <line class="axis" x1="450" y1="204" x2="450" y2="209"/><text class="sm" x="450" y="222" text-anchor="middle">80</text>
+        <line class="axis" x1="640" y1="204" x2="640" y2="209"/><text class="sm" x="640" y="222" text-anchor="middle">120</text>
+        <line class="axis" x1="830" y1="204" x2="830" y2="209"/><text class="sm" x="830" y="222" text-anchor="middle">160</text>
+        <text class="sm dim" x="842" y="222">cycles</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 9.</span> Timing. Top: one operation. Bottom: one block of four columns of a full tile, to scale. Each <i>K</i> chunk loads <i>B</i> for 1 cycle, issues 32 row blocks, and drains for 7 cycles. A full tile repeats this for 16 column blocks, which gives 2,560 cycles.</figcaption>
+  </figure>
+
+  <!-- ===================================================================== 6 -->
+  <h2 id="vector"><span class="num">6</span>Vector unit</h2>
+
+  <p class="lede">The vector unit does every operation of the transformer layer that is not a matrix product: additions and scaling, the softmax of attention, normalization, activation functions, and the conversion of FP32 data to NVFP4.</p>
+
+  <h3 id="alu"><span class="num">6.1</span>FP32 lanes</h3>
+  <p>The vector unit, <code>flash_vector</code> at <code>0x1001_0000</code>, has eight lanes (<a href="#fig10">Figure 10</a>). Each lane has its own FP32 arithmetic unit (ALU), <code>fp32_alu</code>, which adds, subtracts, multiplies, takes the maximum, and computes 2<sup><i>x</i></sup> (EXP2) and 1/<i>x</i> (RECIP). The ALU works on one operation at a time over several cycles, and it registers every intermediate step, so its paths stay short. One 32 × 32-bit integer multiplier, four DSP slices, serves multiplication, EXP2 and RECIP. All arithmetic rounds to nearest even. Subnormal inputs and results become zero with their sign kept, as with the <code>.ftz</code> instructions of a GPU, and every NaN result is <code>0x7FFF_FFFF</code>.</p>
+  <p>A GPU computes 2<sup><i>x</i></sup> and 1/<i>x</i> approximately, in special function units. The PTX specification bounds their error at 2 and 1 ULP <a href="#r1">[1]</a>, but it does not publish the method. Our ALU uses its own approximations. EXP2 looks up 2<sup><i>f</i></sup> in a 64-entry table and corrects the remainder with a cubic polynomial. RECIP starts from a 128-entry table and refines the estimate with two Newton steps. Against the RTX&nbsp;5090's <code>ex2.approx.ftz</code> and <code>rcp.approx.ftz</code>, the results are within 2 and 1 ULP. The lanes build further operations from these steps (<a href="#tab5">Table 5</a>). AXPY multiplies and then adds, with two roundings. RSQRT brings the mantissa into [1, 4), runs four Newton steps and applies the exponent. SILU computes <i>x</i> · 1/(1 + 2<sup>−<i>x</i> log<sub>2</sub> <i>e</i></sup>).</p>
+  <p>A ninth ALU runs the steps that combine lanes, in lane order 0 to 7: the MAX and SUM reductions, the row maximum, α and the probability sum of SOFTMAX, and the reciprocal of NORMALIZE. Because these steps always run in lane order, every result equals a serial evaluation in lane order. The unit is deterministic, and a model of it does not depend on the number of lanes.</p>
+
+  <figure class="table" id="tab5">
+    <figcaption><span class="cap">Table 5.</span> Operations of the vector unit, per lane. <i>x</i> and <i>y</i> are FP32 operands, <i>σ</i> is the command's FP32 SCALAR, and masked lanes give 0.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th class="r">Op</th><th>Name</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td class="r">0–2</td><td>ADD, SUB, MUL</td><td><i>x</i> + <i>y</i>, <i>x</i> − <i>y</i>, <i>x</i> · <i>y</i></td></tr>
+          <tr><td class="r">3</td><td>SCALE</td><td><i>x</i> · <i>σ</i></td></tr>
+          <tr><td class="r">4</td><td>AXPY</td><td>RNE(RNE(<i>x</i> · <i>σ</i>) + <i>y</i>)</td></tr>
+          <tr><td class="r">5, 6</td><td>MAX, SUM</td><td><i>x</i>; the reduction over the masked lanes goes to a register</td></tr>
+          <tr><td class="r">7, 8</td><td>EXP2, RECIP</td><td>2<sup><i>x</i></sup>, 1/<i>x</i>, approximate</td></tr>
+          <tr><td class="r">9</td><td>SOFTMAX</td><td><i>p<sub>j</sub></i> of Eq.&nbsp;(<a href="#eq7">7</a>); <i>m</i>, <i>l</i> and α go to registers</td></tr>
+          <tr><td class="r">10</td><td>NORMALIZE</td><td><i>x</i> · (1/<i>σ</i>), or 0 if <i>σ</i> = 0</td></tr>
+          <tr><td class="r">11–13</td><td>RSQRT, SILU, ABS</td><td>1/√<i>x</i>, <i>x</i> / (1 + <i>e</i><sup>−<i>x</i></sup>), |<i>x</i>|</td></tr>
+          <tr class="mid"><td class="r">14</td><td>QUANT</td><td>rows of NVFP4 blocks, Eq.&nbsp;(<a href="#eq8">8</a>) (§6.4)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <h3 id="stream"><span class="num">6.2</span>Streaming commands</h3>
+  <p>One command processes a whole vector. The host or the kernel engine writes the command as one 32-byte beat to offsets <code>0x20</code>–<code>0x3C</code>: the scratch addresses X, Y and D, the number of 8-element groups and a lane mask, the scalar, the running softmax state, and the opcode. The last word starts the command (Appendix&nbsp;<a href="#taba3">Table A3</a>). The unit then streams: group <i>g</i> reads its operands from X + 32<i>g</i> (and Y + 32<i>g</i>), and its eight results go to D + 32<i>g</i>. While the lanes work on one group, the port fetches the next one. For MAX and SUM, the combining ALU folds the group reductions left to right into the REDUCTION register. The unit rejects a command with a misaligned or out-of-range address, zero groups, or SOFTMAX on more than one group, and sets a status bit. A 1,024-element SiLU, for example, is one command of 128 groups.</p>
+
+  <figure class="wide" id="fig10">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 920 380" role="img" aria-label="The vector unit. The scratch memory feeds the operands x and y of group g into eight operand registers through the vector port. Each operand register feeds one lane with its own FP32 ALU, and each lane writes a result register. The results go back to the scratch memory at D plus 32 g, to a combining ALU that processes lanes 0 to 7 in order and fills the result registers REDUCTION, MAX, SUM and ALPHA, and to the QUANT block. The combining ALU returns values to the lanes. The command beat sets the operation for all lanes. QUANT writes codes and scales back to the scratch memory.">
+        <defs>
+          <marker id="n10a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+        <rect class="box" x="10" y="40" width="140" height="302"/>
+        <text class="lbl" x="80" y="66" text-anchor="middle">scratch</text>
+        <text class="lbl" x="80" y="84" text-anchor="middle">memory</text>
+        <text class="sm dim" x="80" y="106" text-anchor="middle">vector port</text>
+        <text class="sm dim" x="80" y="122" text-anchor="middle">1 beat per cycle</text>
+
+        <line class="edge" x1="150" y1="92" x2="218" y2="92" marker-end="url(#n10a)"/>
+        <text class="sm" x="184" y="85" text-anchor="middle">X, Y</text>
+        <text class="sm dim" x="220" y="72">operands of group g</text>
+
+        <rect class="reg" x="220" y="80" width="52" height="24"/><text class="sm" x="246" y="96" text-anchor="middle">x₀ y₀</text>
+        <rect class="reg" x="280" y="80" width="52" height="24"/><text class="sm" x="306" y="96" text-anchor="middle">x₁ y₁</text>
+        <rect class="reg" x="340" y="80" width="52" height="24"/><text class="sm" x="366" y="96" text-anchor="middle">x₂ y₂</text>
+        <rect class="reg" x="400" y="80" width="52" height="24"/><text class="sm" x="426" y="96" text-anchor="middle">x₃ y₃</text>
+        <rect class="reg" x="460" y="80" width="52" height="24"/><text class="sm" x="486" y="96" text-anchor="middle">x₄ y₄</text>
+        <rect class="reg" x="520" y="80" width="52" height="24"/><text class="sm" x="546" y="96" text-anchor="middle">x₅ y₅</text>
+        <rect class="reg" x="580" y="80" width="52" height="24"/><text class="sm" x="606" y="96" text-anchor="middle">x₆ y₆</text>
+        <rect class="reg" x="640" y="80" width="52" height="24"/><text class="sm" x="666" y="96" text-anchor="middle">x₇ y₇</text>
+
+        <line class="edge" x1="246" y1="104" x2="246" y2="138" marker-end="url(#n10a)"/>
+        <line class="edge" x1="306" y1="104" x2="306" y2="138" marker-end="url(#n10a)"/>
+        <line class="edge" x1="366" y1="104" x2="366" y2="138" marker-end="url(#n10a)"/>
+        <line class="edge" x1="426" y1="104" x2="426" y2="138" marker-end="url(#n10a)"/>
+        <line class="edge" x1="486" y1="104" x2="486" y2="138" marker-end="url(#n10a)"/>
+        <line class="edge" x1="546" y1="104" x2="546" y2="138" marker-end="url(#n10a)"/>
+        <line class="edge" x1="606" y1="104" x2="606" y2="138" marker-end="url(#n10a)"/>
+        <line class="edge" x1="666" y1="104" x2="666" y2="138" marker-end="url(#n10a)"/>
+
+        <rect class="pe" x="220" y="140" width="52" height="50"/><text class="lbl tp" x="246" y="161" text-anchor="middle">lane 0</text><text class="sm dim" x="246" y="179" text-anchor="middle">ALU</text>
+        <rect class="pe" x="280" y="140" width="52" height="50"/><text class="lbl tp" x="306" y="161" text-anchor="middle">lane 1</text><text class="sm dim" x="306" y="179" text-anchor="middle">ALU</text>
+        <rect class="pe" x="340" y="140" width="52" height="50"/><text class="lbl tp" x="366" y="161" text-anchor="middle">lane 2</text><text class="sm dim" x="366" y="179" text-anchor="middle">ALU</text>
+        <rect class="pe" x="400" y="140" width="52" height="50"/><text class="lbl tp" x="426" y="161" text-anchor="middle">lane 3</text><text class="sm dim" x="426" y="179" text-anchor="middle">ALU</text>
+        <rect class="pe" x="460" y="140" width="52" height="50"/><text class="lbl tp" x="486" y="161" text-anchor="middle">lane 4</text><text class="sm dim" x="486" y="179" text-anchor="middle">ALU</text>
+        <rect class="pe" x="520" y="140" width="52" height="50"/><text class="lbl tp" x="546" y="161" text-anchor="middle">lane 5</text><text class="sm dim" x="546" y="179" text-anchor="middle">ALU</text>
+        <rect class="pe" x="580" y="140" width="52" height="50"/><text class="lbl tp" x="606" y="161" text-anchor="middle">lane 6</text><text class="sm dim" x="606" y="179" text-anchor="middle">ALU</text>
+        <rect class="pe" x="640" y="140" width="52" height="50"/><text class="lbl tp" x="666" y="161" text-anchor="middle">lane 7</text><text class="sm dim" x="666" y="179" text-anchor="middle">ALU</text>
+
+        <line class="edge" x1="246" y1="190" x2="246" y2="208" marker-end="url(#n10a)"/>
+        <line class="edge" x1="306" y1="190" x2="306" y2="208" marker-end="url(#n10a)"/>
+        <line class="edge" x1="366" y1="190" x2="366" y2="208" marker-end="url(#n10a)"/>
+        <line class="edge" x1="426" y1="190" x2="426" y2="208" marker-end="url(#n10a)"/>
+        <line class="edge" x1="486" y1="190" x2="486" y2="208" marker-end="url(#n10a)"/>
+        <line class="edge" x1="546" y1="190" x2="546" y2="208" marker-end="url(#n10a)"/>
+        <line class="edge" x1="606" y1="190" x2="606" y2="208" marker-end="url(#n10a)"/>
+        <line class="edge" x1="666" y1="190" x2="666" y2="208" marker-end="url(#n10a)"/>
+
+        <rect class="reg" x="220" y="210" width="52" height="22"/><text class="sm" x="246" y="225" text-anchor="middle">r₀</text>
+        <rect class="reg" x="280" y="210" width="52" height="22"/><text class="sm" x="306" y="225" text-anchor="middle">r₁</text>
+        <rect class="reg" x="340" y="210" width="52" height="22"/><text class="sm" x="366" y="225" text-anchor="middle">r₂</text>
+        <rect class="reg" x="400" y="210" width="52" height="22"/><text class="sm" x="426" y="225" text-anchor="middle">r₃</text>
+        <rect class="reg" x="460" y="210" width="52" height="22"/><text class="sm" x="486" y="225" text-anchor="middle">r₄</text>
+        <rect class="reg" x="520" y="210" width="52" height="22"/><text class="sm" x="546" y="225" text-anchor="middle">r₅</text>
+        <rect class="reg" x="580" y="210" width="52" height="22"/><text class="sm" x="606" y="225" text-anchor="middle">r₆</text>
+        <rect class="reg" x="640" y="210" width="52" height="22"/><text class="sm" x="666" y="225" text-anchor="middle">r₇</text>
+
+        <line class="edge" x1="246" y1="232" x2="246" y2="250"/>
+        <line class="edge" x1="306" y1="232" x2="306" y2="250"/>
+        <line class="edge" x1="366" y1="232" x2="366" y2="250"/>
+        <line class="edge" x1="426" y1="232" x2="426" y2="250"/>
+        <line class="edge" x1="486" y1="232" x2="486" y2="250"/>
+        <line class="edge" x1="546" y1="232" x2="546" y2="250"/>
+        <line class="edge" x1="606" y1="232" x2="606" y2="250"/>
+        <line class="edge" x1="666" y1="232" x2="666" y2="250"/>
+        <line class="edge" x1="152" y1="250" x2="736" y2="250" marker-start="url(#n10a)" marker-end="url(#n10a)"/>
+        <text class="sm" x="172" y="244" text-anchor="middle">D + 32g</text>
+
+        <line class="edge" x1="372" y1="250" x2="372" y2="284" marker-end="url(#n10a)"/>
+        <rect class="box" x="232" y="286" width="280" height="48"/>
+        <text class="lbl" x="372" y="306" text-anchor="middle">combining ALU, lanes 0 → 7</text>
+        <text class="sm" x="372" y="324" text-anchor="middle">reductions · softmax m, α, l · 1 / scalar</text>
+        <line class="edge" x1="512" y1="310" x2="528" y2="310" marker-end="url(#n10a)"/>
+        <rect class="box" x="530" y="286" width="170" height="48"/>
+        <text class="lbl" x="615" y="305" text-anchor="middle">result registers</text>
+        <text class="sm dim" x="615" y="323" text-anchor="middle">REDUCTION MAX SUM ALPHA</text>
+        <polyline class="flag" points="232,320 200,320 200,180 218,180" marker-end="url(#n10a)"/>
+
+        <rect class="box" x="740" y="40" width="170" height="136"/>
+        <text class="lbl" x="750" y="62">command beat</text>
+        <text class="sm" x="750" y="82">X, Y, D addresses</text>
+        <text class="sm" x="750" y="98">GROUPS, MASK</text>
+        <text class="sm" x="750" y="114">SCALAR</text>
+        <text class="sm" x="750" y="130">OLD_MAX, OLD_SUM</text>
+        <text class="sm" x="750" y="146">CTRL: opcode, start</text>
+        <text class="sm dim mono" x="750" y="166">0x20–0x3C</text>
+        <line class="edge" x1="740" y1="165" x2="694" y2="165" marker-end="url(#n10a)"/>
+
+        <rect class="box" x="740" y="200" width="170" height="90"/>
+        <text class="lbl" x="750" y="220">QUANT</text>
+        <text class="sm" x="750" y="238">max |x| scan, 16 cycles</text>
+        <text class="sm" x="750" y="254">UE4M3 scale, thresholds</text>
+        <text class="sm" x="750" y="270">E2M1 codes, 8 per cycle</text>
+        <polyline class="edge" points="825,290 825,356 80,356 80,344" marker-end="url(#n10a)"/>
+        <text class="sm dim" x="452" y="373" text-anchor="middle">codes → D + 128r + 8b, scales → Y + 16r (tensor-core layout)</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 10.</span> The vector unit. Each group of 8 FP32 elements arrives from the scratch memory in one beat, passes through the eight lanes, and returns in one beat. The command sets the operation, the scalar and the mask of all lanes. The combining ALU reads the lane results in order. Dashed: values that it returns to the lanes (the new row maximum for SOFTMAX, the reciprocal for NORMALIZE). QUANT reads the lane results of a block and writes codes and scales in the layout of the tensor core.</figcaption>
+  </figure>
+
+  <h3 id="softmax"><span class="num">6.3</span>Online softmax</h3>
+  <p>Attention gives each query a weighted average of the value vectors <i>V<sub>j</sub></i>. The weights are the softmax of the scores <i>s<sub>j</sub></i>: <i>p<sub>j</sub></i> = exp(<i>s<sub>j</sub></i> − <i>m</i>) / Σ<sub><i>k</i></sub> exp(<i>s<sub>k</sub></i> − <i>m</i>), where subtracting the maximum score <i>m</i> keeps the exponentials from overflowing. FlashAttention <a href="#r9">[9]</a> computes this one block of keys at a time, so the full matrix of scores never exists in memory. It keeps three running values per query row: the maximum <i>m</i>, the sum <i>l</i> and the unnormalized output <i>O</i>. When a later block raises the maximum, a factor α corrects the earlier sum and output <a href="#r14">[14]</a>. With λ = log<sub>2</sub>(<i>e</i>)/√<i>d</i> for heads of width <i>d</i>, one key block updates a row as</p>
+
+  <div class="eq" id="eq7">
+    <math display="block"><mtable>
+      <mtr><mtd><msub><mi>m</mi><mtext>new</mtext></msub></mtd><mtd><mo>=</mo><mi>max</mi><mo>(</mo><msub><mi>m</mi><mtext>old</mtext></msub><mo>,</mo><mspace width="0.2em"></mspace><msub><mi>max</mi><mi>j</mi></msub><msub><mi>s</mi><mi>j</mi></msub><mo>)</mo><mo>,</mo></mtd></mtr>
+      <mtr><mtd><mi>α</mi></mtd><mtd><mo>=</mo><msup><mn>2</mn><mrow><mo>(</mo><msub><mi>m</mi><mtext>old</mtext></msub><mo>−</mo><msub><mi>m</mi><mtext>new</mtext></msub><mo>)</mo><mi>λ</mi></mrow></msup><mo>,</mo><mspace width="1em"></mspace><msub><mi>p</mi><mi>j</mi></msub><mo>=</mo><msup><mn>2</mn><mrow><mo>(</mo><msub><mi>s</mi><mi>j</mi></msub><mo>−</mo><msub><mi>m</mi><mtext>new</mtext></msub><mo>)</mo><mi>λ</mi></mrow></msup><mo>,</mo></mtd></mtr>
+      <mtr><mtd><msub><mi>l</mi><mtext>new</mtext></msub></mtd><mtd><mo>=</mo><mi>α</mi><msub><mi>l</mi><mtext>old</mtext></msub><mo>+</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>p</mi><mi>j</mi></msub><mo>,</mo><mspace width="1em"></mspace><msub><mi>O</mi><mtext>new</mtext></msub><mo>=</mo><mi>α</mi><msub><mi>O</mi><mtext>old</mtext></msub><mo>+</mo><munder><mo>∑</mo><mi>j</mi></munder><msub><mi>p</mi><mi>j</mi></msub><msub><mi>V</mi><mi>j</mi></msub><mo>,</mo></mtd></mtr>
+    </mtable></math>
+    <span class="eqn">(7)</span>
+  </div>
+
+  <p>and the output is <i>O</i>/<i>l</i> after the last block. Masked keys, used for causal attention, get <i>p<sub>j</sub></i> = 0; α = 0 while <i>l</i><sub>old</sub> = 0. A SOFTMAX command computes <i>m</i><sub>new</sub>, α, <i>p<sub>j</sub></i> and <i>l</i><sub>new</sub> for one row of eight scores, and the tensor core computes Σ<i>p<sub>j</sub>V<sub>j</sub></i>. AXPY then updates <i>O</i>, and NORMALIZE divides by <i>l</i> at the end. The state stays in FP32 between blocks. Against an ordered CUDA reference on the RTX&nbsp;5090, tiled attention on the vector unit differs by at most 2.4 × 10<sup>−7</sup>.</p>
+
+  <h3 id="quant"><span class="num">6.4</span>NVFP4 quantization</h3>
+  <p>Before each matrix product, the activations, which the vector unit holds in FP32, must become NVFP4. QUANT does this on the device. For each block of 16 elements <i>x<sub>i</sub></i> and the inverse tensor scale <i>v</i>, it computes the block scale <i>s</i> and the element codes <i>q<sub>i</sub></i> as</p>
+
+  <div class="eq" id="eq8">
+    <math display="block"><mtable>
+      <mtr><mtd><mi>s</mi></mtd><mtd><mo>=</mo><msub><mi>RNE</mi><mtext>UE4M3</mtext></msub><mrow><mo>(</mo><mi>RNE</mi><mrow><mo>(</mo><mi>RNE</mi><mo>(</mo><msub><mi>max</mi><mi>i</mi></msub><mo stretchy="false">|</mo><msub><mi>x</mi><mi>i</mi></msub><mo stretchy="false">|</mo><mo>⋅</mo><mi>v</mi><mo>)</mo><mo>⋅</mo><mi>RNE</mi><mo>(</mo><mn>1</mn><mo>/</mo><mn>6</mn><mo>)</mo><mo>)</mo></mrow><mo>)</mo></mrow><mo>,</mo></mtd></mtr>
+      <mtr><mtd><msub><mi>q</mi><mi>i</mi></msub></mtd><mtd><mo>=</mo><msub><mi>RNE</mi><mtext>E2M1</mtext></msub><mrow><mo>(</mo><mi>RNE</mi><mo>(</mo><msub><mi>x</mi><mi>i</mi></msub><mo>⋅</mo><mi>v</mi><mo>)</mo><mo>/</mo><mi>s</mi><mo>)</mo></mrow><mo>,</mo></mtd></mtr>
+    </mtable></math>
+    <span class="eqn">(8)</span>
+  </div>
+
+  <p>where RNE<sub>E2M1</sub> saturates at ±6. Dividing by 6 maps the largest element of a block to the largest E2M1 value. <a href="#alg2">Algorithm 2</a> gives the steps. The lanes compute every scaled element RNE(<i>x<sub>i</sub></i> · <i>v</i>) in two passes of eight. Meanwhile, a scan finds the element of largest magnitude. Rounding is symmetric and never reverses an order, so the scaled value of that element already equals RNE(max |<i>x<sub>i</sub></i>| · <i>v</i>), and the scale needs no extra multiply. The codes of a row go to D + 128<i>r</i> + 8<i>b</i>, and its scale bytes to Y + 16<i>r</i>. These are the row layouts of the tensor core's tile memory (Appendix&nbsp;<a href="#taba2">Table A2</a>), so one COPY moves the result into the tensor core. A block takes about 38 cycles. QUANT rejects a block with a NaN or infinite element, or one whose scaled maximum overflows.</p>
+
+  <figure class="alg" id="alg2">
+    <figcaption><span class="cap">Algorithm 2.</span> QUANT of block <i>b</i> of row <i>r</i>. Comments give the hardware that does each step.</figcaption>
+    <ol>
+      <li><span class="kw">input:</span> <i>x</i><sub>0</sub> … <i>x</i><sub>15</sub> from X; the inverse tensor scale <i>v</i> = SCALAR</li>
+      <li><span class="kw">for</span> <i>i</i> ← 0 <span class="kw">to</span> 15 <span class="kw">do</span> <i>p<sub>i</sub></i> ← RNE(<i>x<sub>i</sub></i> · <i>v</i>) <span class="cm">▷ 8 lanes, 2 passes</span></li>
+      <li><i>k</i> ← index of the largest |<i>x<sub>i</sub></i>|; subnormal <i>x<sub>i</sub></i> count as 0 <span class="cm">▷ 16-cycle scan, during line 2</span></li>
+      <li><span class="kw">if</span> some <i>x<sub>i</sub></i> is not finite, or <i>p<sub>k</sub></i> = ±∞ <span class="kw">then</span> reject <span class="cm">▷ status bit</span></li>
+      <li><i>s</i> ← RNE<sub>UE4M3</sub>(RNE(|<i>p<sub>k</sub></i>| · RNE(1/6))) <span class="cm">▷ 1 lane pass, scale encoder</span></li>
+      <li><i>t</i><sub>0</sub> … <i>t</i><sub>6</sub> ← <i>s</i> × the midpoints between E2M1 magnitudes <span class="cm">▷ exact, 1 cycle</span></li>
+      <li><span class="kw">for</span> <i>i</i> ← 0 <span class="kw">to</span> 15 <span class="kw">do</span> <i>q<sub>i</sub></i> ← code of |<i>p<sub>i</sub></i>| against <i>t</i>, ties to even, with the sign of <i>p<sub>i</sub></i> <span class="cm">▷ 8 per cycle</span></li>
+      <li>write <i>q</i> to D + 128<i>r</i> + 8<i>b</i> and <i>s</i> to byte <i>b</i> of Y + 16<i>r</i> <span class="cm">▷ vector port</span></li>
+    </ol>
+  </figure>
+
+  <!-- ===================================================================== 7 -->
+  <h2 id="layer"><span class="num">7</span>Kernel engine and transformer layer</h2>
+
+  <p class="lede">The kernel engine is a small processor that sequences the other devices. With it, a whole transformer layer runs on the FPGA from one uploaded program, and the host only loads the inputs and reads the results.</p>
+
+  <h3 id="engine"><span class="num">7.1</span>Kernel engine</h3>
+  <p>The kernel engine, <code>kernel_engine</code> at <code>0x1002_0000</code>, executes a program of up to 8,192 64-bit instructions with 16 integer registers (Appendix&nbsp;<a href="#taba4">Table A4</a>). It fetches and executes an instruction in two cycles, plus the bus time of the instruction. Most instructions are ordinary integer arithmetic and branches. Four of them use the bus, on which the engine is a second master next to the host. LOAD and STORE move one word. COPY moves <i>n</i> words: each step reads up to eight words in one beat and writes them in one beat, and it rotates the words when the source and destination have different offsets within a beat. WAIT reads a status word until its busy bits clear, and it stops the program with a fault if an error bit is set.</p>
+  <p>A program starts a vector command with one COPY of the command beat from scratch memory to the vector unit, and then WAITs for it. The compiler prepares every command beat in scratch memory in advance. When a word of the command depends on an earlier result, such as the normalization factor of RMSNorm or the running softmax state, a one-word COPY patches that word first. A program starts the tensor core in the same way: COPYs move the operand rows into the tile memory, register writes set the format and the dimensions and start it, a WAIT polls its status, and a loop of COPYs moves <i>C</i> out.</p>
+
+  <h3 id="compiler"><span class="num">7.2</span>The transformer layer</h3>
+  <p>The layer is a pre-norm transformer block <a href="#r15">[15]</a>: <i>h</i> = <i>x</i> + Attention(RMSNorm(<i>x</i>)) and <i>y</i> = <i>h</i> + FFN(RMSNorm(<i>h</i>)). RMSNorm <a href="#r12">[12]</a> divides each row by the root of its mean square and multiplies it by a learned γ. The feed-forward network is SwiGLU <a href="#r13">[13]</a>: FFN(<i>n</i>) = <i>W</i><sub>down</sub>(SiLU(<i>W</i><sub>gate</sub><i>n</i>) ⊙ <i>W</i><sub>up</sub><i>n</i>). The shape is fixed: 16 tokens, width 32, one attention head of width 32, and a feed-forward width of 64. Attention is causal or dense. <a href="#fig11">Figure 11</a> shows the dataflow.</p>
+  <p>The host quantizes the weights to NVFP4 once. The device quantizes every activation with QUANT before it enters a matrix product. Activations and weights use the tensor scale 1/64, and softmax probabilities use 1/2688. These are fixed calibration constants, not values measured at run time. After each product, a SCALE command multiplies <i>C</i> by the product of the two tensor scales. Attention processes the queries in pairs, the 2 rows of the grid, and the keys in tiles of 8. For each pair and tile, the tensor core computes the scores <i>S</i> = <i>Q K</i><sup>T</sup> (2 × 8 × 32), SOFTMAX updates the state of both rows, QUANT converts the probabilities, and the tensor core computes <i>P V</i> with <i>K</i> = 32. <i>V</i> is transposed and padded so that its 8 keys form the first 8 elements of each column.</p>
+  <p>The compiler, <code>host/transformer.py</code>, unrolls all loops over rows and query pairs, so every address and every causal mask is a constant. The program has 4,071 instructions and uses 108,896 bytes of scratch memory for inputs, weights, intermediate results and 371 command beats. It runs 39 matrix products and 371 vector commands, of which 24 are QUANT. An independent model in Python, <code>host/transformer_model.py</code>, computes the same layer with the same quantization and the same FP32 operation order.</p>
+
+  <figure class="wide" id="fig11">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 920 392" role="img" aria-label="Dataflow of the transformer layer in four rows. Row 1: input x, RMSNorm, QUANT, the Q, K and V projections on the tensor core, QUANT of Q, K and V transposed. Row 2, inside a loop over 8 query-row pairs and 2 key tiles: S equals Q K transposed on the tensor core, SOFTMAX, QUANT P, P V on the tensor core, O equals alpha O plus P V, and after the last tile O divided by l. Row 3: QUANT, output projection on the tensor core, residual addition, RMSNorm, QUANT, gate and up projections on the tensor core. Row 4: SiLU of gate times up, QUANT, down projection on the tensor core, residual addition, output.">
+        <defs>
+          <marker id="n11a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+        <rect class="pe" x="10" y="8" width="16" height="11"/><text class="sm" x="32" y="18">tensor core</text>
+        <rect class="shade" x="120" y="8" width="16" height="11"/><text class="sm" x="142" y="18">vector unit</text>
+        <text class="sm dim" x="240" y="18">Every arrow passes through scratch memory. The kernel engine copies the operands and starts each unit.</text>
+
+        <rect class="box" x="10" y="36" width="140" height="46"/><text class="lbl" x="80" y="55" text-anchor="middle">input x</text><text class="sm dim" x="80" y="73" text-anchor="middle">16 × 32 FP32</text>
+        <line class="edge" x1="150" y1="59" x2="188" y2="59" marker-end="url(#n11a)"/>
+        <rect class="shade" x="190" y="36" width="140" height="46"/><text class="lbl" x="260" y="55" text-anchor="middle">RMSNorm</text><text class="sm dim" x="260" y="73" text-anchor="middle">16 rows</text>
+        <line class="edge" x1="330" y1="59" x2="368" y2="59" marker-end="url(#n11a)"/>
+        <rect class="shade" x="370" y="36" width="140" height="46"/><text class="lbl" x="440" y="55" text-anchor="middle">QUANT</text><text class="sm dim" x="440" y="73" text-anchor="middle">16 rows × 2 blocks</text>
+        <line class="edge" x1="510" y1="59" x2="548" y2="59" marker-end="url(#n11a)"/>
+        <rect class="pe" x="550" y="36" width="140" height="46"/><text class="lbl" x="620" y="55" text-anchor="middle">Q, K, V</text><text class="sm dim" x="620" y="73" text-anchor="middle">3 × (16 × 32 × 32)</text>
+        <line class="edge" x1="690" y1="59" x2="728" y2="59" marker-end="url(#n11a)"/>
+        <rect class="shade" x="730" y="36" width="140" height="46"/><text class="lbl" x="800" y="55" text-anchor="middle">QUANT Q, K, Vᵀ</text><text class="sm dim" x="800" y="73" text-anchor="middle">Vᵀ per key tile</text>
+        <polyline class="edge" points="800,82 800,96 88,96 88,134" marker-end="url(#n11a)"/>
+
+        <rect class="chip" x="10" y="108" width="900" height="118" rx="4"/>
+        <text class="sm dim" x="900" y="124" text-anchor="end">attention: for each of 8 query-row pairs, for each of 2 key tiles of 8 keys</text>
+        <rect class="pe" x="24" y="136" width="128" height="46"/><text class="lbl" x="88" y="155" text-anchor="middle">S = Q Kᵀ</text><text class="sm dim" x="88" y="173" text-anchor="middle">2 × 8 × 32</text>
+        <line class="edge" x1="152" y1="159" x2="172" y2="159" marker-end="url(#n11a)"/>
+        <rect class="shade" x="174" y="136" width="128" height="46"/><text class="lbl" x="238" y="155" text-anchor="middle">SOFTMAX</text><text class="sm dim" x="238" y="173" text-anchor="middle">online m, l, α</text>
+        <line class="edge" x1="302" y1="159" x2="322" y2="159" marker-end="url(#n11a)"/>
+        <rect class="shade" x="324" y="136" width="128" height="46"/><text class="lbl" x="388" y="155" text-anchor="middle">QUANT P</text><text class="sm dim" x="388" y="173" text-anchor="middle">2 rows</text>
+        <line class="edge" x1="452" y1="159" x2="472" y2="159" marker-end="url(#n11a)"/>
+        <rect class="pe" x="474" y="136" width="128" height="46"/><text class="lbl" x="538" y="155" text-anchor="middle">P V</text><text class="sm dim" x="538" y="173" text-anchor="middle">2 × 32 × 32</text>
+        <line class="edge" x1="602" y1="159" x2="622" y2="159" marker-end="url(#n11a)"/>
+        <rect class="shade" x="624" y="136" width="128" height="46"/><text class="lbl" x="688" y="155" text-anchor="middle">O ← αO + P V</text><text class="sm dim" x="688" y="173" text-anchor="middle">AXPY</text>
+        <line class="edge" x1="752" y1="159" x2="772" y2="159" marker-end="url(#n11a)"/>
+        <rect class="shade" x="774" y="136" width="128" height="46"/><text class="lbl" x="838" y="155" text-anchor="middle">O ← O / l</text><text class="sm dim" x="838" y="173" text-anchor="middle">after the last tile</text>
+        <polyline class="flag" points="688,182 688,202 88,202 88,184" marker-end="url(#n11a)"/>
+        <text class="sm dim" x="388" y="218" text-anchor="middle">next key tile</text>
+        <polyline class="edge" points="838,182 838,240 88,240 88,254" marker-end="url(#n11a)"/>
+
+        <rect class="shade" x="24" y="256" width="128" height="46"/><text class="lbl" x="88" y="275" text-anchor="middle">QUANT</text><text class="sm dim" x="88" y="293" text-anchor="middle">attention output</text>
+        <line class="edge" x1="152" y1="279" x2="172" y2="279" marker-end="url(#n11a)"/>
+        <rect class="pe" x="174" y="256" width="128" height="46"/><text class="lbl" x="238" y="275" text-anchor="middle">output proj.</text><text class="sm dim" x="238" y="293" text-anchor="middle">16 × 32 × 32</text>
+        <line class="edge" x1="302" y1="279" x2="322" y2="279" marker-end="url(#n11a)"/>
+        <rect class="shade" x="324" y="256" width="128" height="46"/><text class="lbl" x="388" y="275" text-anchor="middle">h = x + …</text><text class="sm dim" x="388" y="293" text-anchor="middle">residual</text>
+        <line class="edge" x1="452" y1="279" x2="472" y2="279" marker-end="url(#n11a)"/>
+        <rect class="shade" x="474" y="256" width="128" height="46"/><text class="lbl" x="538" y="275" text-anchor="middle">RMSNorm</text><text class="sm dim" x="538" y="293" text-anchor="middle">16 rows</text>
+        <line class="edge" x1="602" y1="279" x2="622" y2="279" marker-end="url(#n11a)"/>
+        <rect class="shade" x="624" y="256" width="128" height="46"/><text class="lbl" x="688" y="275" text-anchor="middle">QUANT</text><text class="sm dim" x="688" y="293" text-anchor="middle">16 rows × 2 blocks</text>
+        <line class="edge" x1="752" y1="279" x2="772" y2="279" marker-end="url(#n11a)"/>
+        <rect class="pe" x="774" y="256" width="128" height="46"/><text class="lbl" x="838" y="275" text-anchor="middle">gate, up</text><text class="sm dim" x="838" y="293" text-anchor="middle">2 × (16 × 64 × 32)</text>
+        <polyline class="edge" points="838,302 838,318 88,318 88,332" marker-end="url(#n11a)"/>
+
+        <rect class="shade" x="24" y="334" width="128" height="46"/><text class="lbl" x="88" y="353" text-anchor="middle">SiLU(gate) · up</text><text class="sm dim" x="88" y="371" text-anchor="middle">16 × 64</text>
+        <line class="edge" x1="152" y1="357" x2="172" y2="357" marker-end="url(#n11a)"/>
+        <rect class="shade" x="174" y="334" width="128" height="46"/><text class="lbl" x="238" y="353" text-anchor="middle">QUANT</text><text class="sm dim" x="238" y="371" text-anchor="middle">16 rows × 4 blocks</text>
+        <line class="edge" x1="302" y1="357" x2="322" y2="357" marker-end="url(#n11a)"/>
+        <rect class="pe" x="324" y="334" width="128" height="46"/><text class="lbl" x="388" y="353" text-anchor="middle">down</text><text class="sm dim" x="388" y="371" text-anchor="middle">16 × 32 × 64</text>
+        <line class="edge" x1="452" y1="357" x2="472" y2="357" marker-end="url(#n11a)"/>
+        <rect class="shade" x="474" y="334" width="128" height="46"/><text class="lbl" x="538" y="353" text-anchor="middle">h + …</text><text class="sm dim" x="538" y="371" text-anchor="middle">residual</text>
+        <line class="edge" x1="602" y1="357" x2="622" y2="357" marker-end="url(#n11a)"/>
+        <rect class="box" x="624" y="334" width="128" height="46"/><text class="lbl" x="688" y="353" text-anchor="middle">output</text><text class="sm dim" x="688" y="371" text-anchor="middle">16 × 32 FP32</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 11.</span> Dataflow of the transformer layer. Green: matrix products on the tensor core, with their size <i>M</i> × <i>N</i> × <i>K</i>. Grey: vector-unit commands. The attention loop (frame) runs 16 times. Each matrix product is followed by a SCALE command that applies the tensor scales (not drawn).</figcaption>
+  </figure>
+
+  <h3 id="time"><span class="num">7.3</span>Results and where the time goes</h3>
+  <p>The layer runs on the board with the outputs that the reference predicts (<a href="#tab6">Table 6</a>). The final outputs equal the reference bit for bit on both inputs. The intermediate RMSNorm results differ from the reference by at most 4.8 × 10<sup>−7</sup>, and those of attention and SwiGLU by at most 6.0 × 10<sup>−8</sup>, because the reference rounds 2<sup><i>x</i></sup>, 1/√<i>x</i> and SiLU to nearest, while the device approximates them. The final quantization absorbs these small differences on both inputs. This is an observation, not a guarantee for every input.</p>
+
+  <figure class="table" id="tab6">
+    <figcaption><span class="cap">Table 6.</span> The transformer layer on the board at 50&nbsp;MHz. Times exclude the upload of the program and inputs and the readback of the results.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Input</th><th>Attention</th><th class="r">Cycles</th><th class="r">Time</th><th class="r">Final max. error</th></tr></thead>
+        <tbody>
+          <tr><td>seed 3</td><td>causal</td><td class="r">139,244</td><td class="r">2.785 ms</td><td class="r">0</td></tr>
+          <tr><td>seed 11</td><td>dense</td><td class="r">140,924</td><td class="r">2.818 ms</td><td class="r">0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <p>The tensor core computes for only 2,592 of these cycles (<a href="#fig12">Figure 12</a>). The layer is small: its 39 matrix products are short, and most of them have <i>M</i> = 2 or <i>K</i> = 32, which pay the load and drain cost of Eq.&nbsp;(<a href="#eq6">6</a>) for few issue cycles. The time goes to the vector unit (45%), to the copies of operands and results between scratch memory and the tile memory (23%), to instruction issue (9%), and to other bus transfers and waits (23%). The kernel engine waits for each command before it issues the next, so the units do not overlap. §10 discusses this.</p>
+
+  <figure class="wide" id="fig12">
+    <div class="fig">
+      <svg class="dg" viewBox="0 0 920 222" role="img" aria-label="Stacked bar of the 139,368 cycles of the layer, to scale: waiting for the vector unit 63,162 cycles (45 percent), of which QUANT 15,951; copies to and from the tensor core 31,882 (23 percent); instruction fetch and execute 11,992 (9 percent); other bus transfers and tensor-core waits 32,332 (23 percent). A second bar shows the 2,592 cycles in which the tensor core computes.">
+        <defs>
+          <pattern id="n12h" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect class="bar" width="6" height="6"/>
+            <line class="hatchw" x1="0" y1="0" x2="0" y2="6"/>
+          </pattern>
+        </defs>
+        <text class="sm" x="60" y="30">Layer, seed 3, causal: 139,368 cycles in UART RTL simulation</text>
+        <rect class="bar" x="60" y="40" width="369.9" height="32"/>
+        <rect x="60" y="40" width="93.4" height="32" fill="url(#n12h)"/>
+        <rect class="fa" x="429.9" y="40" width="186.7" height="32"/>
+        <rect class="fc" x="616.6" y="40" width="70.2" height="32"/>
+        <rect class="fo" x="686.8" y="40" width="189.4" height="32"/>
+        <text class="sm onbar" x="291.6" y="60" text-anchor="middle">45%</text>
+        <text class="sm onbar" x="523.2" y="60" text-anchor="middle">23%</text>
+        <text class="sm onbar" x="651.7" y="60" text-anchor="middle">9%</text>
+        <text class="sm" x="781.5" y="60" text-anchor="middle">23%</text>
+
+        <rect class="bar" x="60" y="90" width="14" height="11"/><text class="sm" x="80" y="100">waiting for the vector unit: 63,162</text>
+        <rect x="60" y="108" width="14" height="11" fill="url(#n12h)"/><text class="sm" x="80" y="118">of which QUANT: 15,951</text>
+        <rect class="fa" x="60" y="126" width="14" height="11"/><text class="sm" x="80" y="136">copies to and from the tensor core: 31,882</text>
+        <rect class="fc" x="480" y="90" width="14" height="11"/><text class="sm" x="500" y="100">instruction fetch and execute: 11,992</text>
+        <rect class="fo" x="480" y="108" width="14" height="11"/><text class="sm" x="500" y="118">other bus transfers and tensor-core waits: 32,332</text>
+
+        <rect class="fb" x="60" y="152" width="15.2" height="16"/>
+        <text class="sm" x="82" y="164">tensor core computing: 2,592 cycles (1.9%)</text>
+
+        <line class="axis" x1="60" y1="182" x2="880" y2="182"/>
+        <line class="axis" x1="60" y1="182" x2="60" y2="187"/><text class="sm" x="60" y="200" text-anchor="middle">0</text>
+        <line class="axis" x1="177.1" y1="182" x2="177.1" y2="187"/><text class="sm" x="177.1" y="200" text-anchor="middle">20,000</text>
+        <line class="axis" x1="294.3" y1="182" x2="294.3" y2="187"/><text class="sm" x="294.3" y="200" text-anchor="middle">40,000</text>
+        <line class="axis" x1="411.4" y1="182" x2="411.4" y2="187"/><text class="sm" x="411.4" y="200" text-anchor="middle">60,000</text>
+        <line class="axis" x1="528.6" y1="182" x2="528.6" y2="187"/><text class="sm" x="528.6" y="200" text-anchor="middle">80,000</text>
+        <line class="axis" x1="645.7" y1="182" x2="645.7" y2="187"/><text class="sm" x="645.7" y="200" text-anchor="middle">100,000</text>
+        <line class="axis" x1="762.9" y1="182" x2="762.9" y2="187"/><text class="sm" x="762.9" y="200" text-anchor="middle">120,000</text>
+        <line class="axis" x1="880" y1="182" x2="880" y2="187"/><text class="sm" x="880" y="200" text-anchor="middle">140,000</text>
+        <text class="sm dim" x="880" y="216" text-anchor="end">cycles</text>
+      </svg>
+    </div>
+    <figcaption><span class="cap">Figure 12.</span> Where the cycles of the layer go, to scale, counted per instruction in a cycle-accurate simulation of the SoC with its UART link (139,368 cycles; 139,244 on the board). Hatched: the part of the vector-unit time spent in QUANT.</figcaption>
+  </figure>
+
+  <!-- ===================================================================== 8 -->
+  <h2 id="verification"><span class="num">8</span>Verification methodology</h2>
+
+  <p class="lede">Every level of the design, from the numerical model to the programmed board, is compared with GPU silicon or with a model that silicon has confirmed.</p>
+
+  <p><span class="run">Reference chain.</span> Silicon is the reference, and two models stand in for it where silicon cannot be run. The silicon harness places each 64-element test vector in every row of <i>A</i> and every column of <i>B</i> of one block-scaled <code>mma.sync…m16n8k64</code> on the RTX&nbsp;5090, and all 128 outputs must agree. The fragment layout follows CUTLASS 4.6.1 <a href="#r7">[7]</a> (<code>MMA_Traits&lt;SM120_16x8x64_TN_VS&gt;</code>), and 4,228 probes confirmed it before any test vector ran. For <i>K</i> &gt; 64, we compare an output with a chain of MMAs, each of which takes the previous GPU result as <i>c</i>. The two models are rule <code>rtx5090</code> of §4, written in floating-point Python, and <code>nvfp4_model</code>, an independent integer model of Eqs.&nbsp;(<a href="#eq1">1</a>)–(<a href="#eq3">3</a>) that the grid and system tests use.</p>
+  <p><span class="run">Stimuli.</span> PE vectors include uniform codes, runs of ±6 that cancel, zero and constant vectors, and every finite scale code. The scale codes include subnormals and <code>0x79</code>–<code>0x7E</code>, which are finite on silicon but NaN in one public reference model. They also include NaN scales. The accumulator <i>c</i> is drawn from zeros of both signs, uniform values, exponents from 2<sup>−30</sup> to 2<sup>30</sup>, and special values. System runs mix full and partial tiles, all formats, overwrite, accumulation, and continuation from the previous <i>C</i>. The DSP grid is tested as a 2 × 2 block whose rows are (<i>a</i>, <i>b</i>) and columns (<i>b</i>, <i>a</i>) of each vector, so its four fields carry <i>a</i>·<i>b</i>, <i>a</i>·<i>a</i>, <i>b</i>·<i>b</i> and <i>b</i>·<i>a</i>. Vectors with all elements +6 against all −6 drive the fields to both ends of [224, 800].</p>
+  <p><span class="run">Vector unit and layer.</span> A CUDA program runs the same FP32 operations on the RTX&nbsp;5090 with the <code>.ftz</code> PTX instructions and with fused multiply-add disabled. Exact operations must agree bit for bit, and approximate ones within fixed ULP bounds. QUANT is compared with the GPU's native conversions to E4M3 and E2M1, and with the Python quantizer for whole rows. The kernel engine has directed tests for every instruction, for COPY between all word offsets, and for each fault. The layer runs on the cycle-accurate simulation of the SoC and on the board, and is compared with the independent reference of §7.2.</p>
+  <p><span class="run">Levels.</span> <a href="#tab7">Table 7</a> lists the levels from the arithmetic model to the board. Three of the 420,025 PE vectors differ from silicon, and all three are instances of the model gaps of §4. For comparison, the open-source Allegro unit <a href="#r5">[5]</a> differed from the RTX&nbsp;5090 on 651 of 100,009 NVFP4 vectors (0.65%). Most of those differences came from all-zero products and a small <i>c</i>.</p>
+
+  <figure class="table wide" id="tab7">
+    <figcaption><span class="cap">Table 7.</span> Verification levels and results. “Model” is <code>nvfp4_model</code> unless stated otherwise. A count is the number of outputs that agree bit for bit; NaNs compare equal regardless of payload.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Level</th><th>Device under test</th><th>Reference</th><th class="r">Agree / total</th></tr></thead>
+        <tbody>
+          <tr><td>Model</td><td>rule <code>rtx5090</code></td><td>RTX 5090 and Jetson Thor, random vectors</td><td class="r nw">600,005 / 600,054</td></tr>
+          <tr><td>Model</td><td><code>nvfp4_model</code></td><td>rule <code>rtx5090</code></td><td class="r nw">420,025 / 420,025</td></tr>
+          <tr class="mid"><td>PE</td><td><code>fp4_fedp</code>, Verilator</td><td>rule <code>rtx5090</code></td><td class="r nw">420,025 / 420,025</td></tr>
+          <tr><td>PE</td><td><code>fp4_fedp</code>, Verilator</td><td>RTX 5090: NVFP4; MXFP4-16; MXFP4 vectors</td><td class="r nw">300,025 / 300,025; 13,359 / 13,359; 6,640 / 6,641</td></tr>
+          <tr><td>PE</td><td><code>fp4_fedp</code>, Verilator</td><td>RTX 5090, new random vectors, 4 modes</td><td class="r nw">99,998 / 100,000</td></tr>
+          <tr><td>PE</td><td><code>fp4_fedp_dsp</code> 2 × 2, Verilator</td><td>rule <code>rtx5090</code>, 4 outputs per vector</td><td class="r nw">1,680,136 / 1,680,136</td></tr>
+          <tr><td>PE</td><td><code>fp4_fedp_dsp</code> 2 × 2, Verilator</td><td>RTX 5090, output <i>a</i>·<i>b</i>, stored and random vectors</td><td class="r nw">420,022 / 420,025</td></tr>
+          <tr class="mid"><td>Grid</td><td><code>nvfp4_tc</code>, direct MMIO, 18 runs</td><td>model</td><td class="r nw">6,016 / 6,016</td></tr>
+          <tr><td>System</td><td>SoC through PyUARTSI, Verilator</td><td>model</td><td class="r nw">18,824 / 18,824</td></tr>
+          <tr><td>System</td><td>SoC through PyUARTSI, Verilator</td><td>RTX 5090 MMA chains</td><td class="r nw">14,880 / 14,880</td></tr>
+          <tr class="mid"><td>Vector</td><td>FP32 ALU primitives</td><td>RTX 5090 PTX, 20,416 records</td><td class="r nw">ADD, MUL, MAX exact; EXP2 ≤ 2, RECIP ≤ 1 ULP</td></tr>
+          <tr><td>Vector</td><td>RSQRT, SILU commands</td><td>RTX 5090 PTX</td><td class="r nw">≤ 2 ULP, ≤ 3 ULP</td></tr>
+          <tr><td>Vector</td><td>tiled attention, dense and causal</td><td>ordered CUDA reference</td><td class="r nw">max. error 2.4 × 10<sup>−7</sup></td></tr>
+          <tr><td>Vector</td><td>QUANT</td><td>RTX 5090 E4M3 and E2M1 conversion</td><td class="r nw">205 / 205 blocks</td></tr>
+          <tr class="mid"><td>Board</td><td>FPGA, 30 runs, 12.6 M MACs</td><td>model and RTX 5090 MMA chains</td><td class="r nw">60,416 / 60,416</td></tr>
+          <tr><td>Board</td><td>transformer layer, 2 inputs</td><td>quantized reference, §7.2</td><td class="r nw">final error 0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <!-- ===================================================================== 9 -->
+  <h2 id="implementation"><span class="num">9</span>Implementation</h2>
+
+  <p>We implement the design with Vivado 2024.2 at 50&nbsp;MHz (<a href="#tab8">Table 8</a>). The SoC uses 88% of the LUTs, 60% of the block RAM and 82% of the DSP slices, and it meets timing with 1.390&nbsp;ns of slack. The vector unit is the largest block: its nine FP32 ALUs, the QUANT encoders and the staging registers take 25,803 LUTs. The tensor core takes 21,909 LUTs and 160 DSP slices. Most of its logic is in stages 2–5 of the PEs, about 2,400 LUTs per output: alignment takes about 1,100 of them and the cut to FP32 about 700. The field registers of §5.3 add 2,560 flip-flops.</p>
+  <p>The critical path, 18.5&nbsp;ns over 11 logic levels, runs from a <i>B</i> RAM output through the operand decode and a slice pair to the field register (<a href="#fig7">Figure 7</a>). QUANT's path from a lane result through the scale encoder has 1.46&nbsp;ns of slack. With the products in LUTs, the tensor core used 31,496 LUTs, and its worst path, through the products and the adder tree, had 0.3&nbsp;ns of slack. The serial link dominates end-to-end time: loading <i>A</i> and <i>B</i> and reading <i>C</i> for a full tile takes about 0.6&nbsp;s, against 51.2&nbsp;µs of compute.</p>
+
+  <figure class="table wide" id="tab8">
+    <figcaption><span class="cap">Table 8.</span> Resources and timing on the Artix-7 <code>xc7a100t</code> at 50&nbsp;MHz. The first group is out of context. The second is the release build, by unit. The last row is the tensor core with LUT products (<code>DSP = 0</code>), from a build with a 32-bit bus.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Component</th><th class="r">LUT</th><th class="r">FF</th><th class="r">Block RAM</th><th class="r">DSP</th><th class="r">WNS (ns)</th></tr></thead>
+        <tbody>
+          <tr><td>One PE, LUT products (<code>fp4_fedp</code>)</td><td class="r">4,084</td><td class="r">548</td><td class="r">0</td><td class="r">4</td><td class="r">+7.846</td></tr>
+          <tr><td>2 × 4 PEs, DSP products (<code>fp4_fedp_dsp</code>)</td><td class="r">21,625</td><td class="r">6,917</td><td class="r">0</td><td class="r">160</td><td class="r">+7.846</td></tr>
+          <tr class="mid"><td>Tensor core (<code>nvfp4_tc</code>)</td><td class="r">21,909</td><td class="r">7,692</td><td class="r nw">62 RAMB18</td><td class="r">160</td><td class="r">–</td></tr>
+          <tr><td>Vector unit (<code>flash_vector</code>)</td><td class="r">25,803</td><td class="r">9,260</td><td class="r nw">1 RAMB36 + 9 RAMB18</td><td class="r">36</td><td class="r">–</td></tr>
+          <tr><td>Kernel engine</td><td class="r">5,514</td><td class="r">1,156</td><td class="r nw">13 RAMB36</td><td class="r">0</td><td class="r">–</td></tr>
+          <tr><td>Scratch memory</td><td class="r">4</td><td class="r">3</td><td class="r nw">32 RAMB36</td><td class="r">0</td><td class="r">–</td></tr>
+          <tr><td>Bus, UART TSI, system registers, clock</td><td class="r">2,494</td><td class="r">2,214</td><td class="r">0</td><td class="r">0</td><td class="r">–</td></tr>
+          <tr><td>SoC, all units</td><td class="r nw">55,724 (88%)</td><td class="r nw">20,325 (16%)</td><td class="r nw">46 RAMB36 + 71 RAMB18 (60%)</td><td class="r nw">196 (82%)</td><td class="r">+1.390</td></tr>
+          <tr class="mid"><td>Tensor core, LUT products</td><td class="r">31,496</td><td class="r">4,610</td><td class="r nw">62 RAMB18</td><td class="r">32</td><td class="r">–</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <!-- ===================================================================== 10 -->
+  <h2 id="limitations"><span class="num">10</span>Limitations</h2>
+
+  <p><span class="run">Scope.</span> The transformer layer has a fixed shape, one attention head, and tensor scales that are fixed constants rather than measured at run time. It has no positional encoding, no key-value cache and no backward pass. The compiler can add these without a change to the hardware or to the upload protocol.</p>
+  <p><span class="run">Arithmetic.</span> Only the matrix products are bit-exact with the GPU. The vector unit's EXP2, RECIP, RSQRT and SILU are within a few ULP of the GPU's instructions, but not bit-equal to them, and production attention kernels may also use fused multiply-add and other reduction orders. The contract of §4 still misses 49 of 600,054 random vectors, and the hardware inherits these differences. We compared the contract with an RTX&nbsp;5090 and a Jetson AGX Thor; B200 and B300 silicon is untested.</p>
+  <p><span class="run">Speed.</span> The kernel engine waits for each command to finish before it issues the next one, so the tensor core, the vector unit and the copies never overlap. Because the vector unit has its own scratch port, a compiler could run vector commands during the tensor-core copies, which together take 68% of the layer. The host link runs at 921,600&nbsp;Bd and limits every transfer between the host and the board. The FPGA is 88% full, so a larger tensor core needs a larger device.</p>
+
+  <!-- ===================================================================== references -->
+  <h2 id="refs">References</h2>
+  <ol class="refs">
+    <li id="r1">NVIDIA. <i>Parallel Thread Execution ISA</i>: warp-level <code>mma</code> with block scaling; <code>ex2.approx</code> and <code>rcp.approx</code>. <a href="https://docs.nvidia.com/cuda/parallel-thread-execution/">docs.nvidia.com/cuda/parallel-thread-execution</a></li>
+    <li id="r2">Open Compute Project. <i>OCP Microscaling Formats (MX) Specification</i>, version 1.0, 2023. <a href="https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf">opencompute.org</a></li>
+    <li id="r3">NVIDIA. Transformer Engine documentation: NVFP4. <a href="https://docs.nvidia.com/deeplearning/transformer-engine/features/low_precision_training/nvfp4/nvfp4.html">docs.nvidia.com/deeplearning/transformer-engine</a></li>
+    <li id="r4">sashakatne. nvfp4-dotprod-formal-dv, commit 125db59. <a href="https://github.com/sashakatne/nvfp4-dotprod-formal-dv">github.com/sashakatne/nvfp4-dotprod-formal-dv</a></li>
+    <li id="r5">roundandr. Allegro, commit ac5b2a4, with its MMA-Sim reference model. <a href="https://github.com/roundandr/Allegro">github.com/roundandr/Allegro</a></li>
+    <li id="r6">UC Berkeley Architecture Research. PyUARTSI and the UART TSI specification. <a href="https://github.com/ucb-bar/pyuartsi/blob/main/docs/uart-tsi-spec.md">github.com/ucb-bar/pyuartsi</a></li>
+    <li id="r7">NVIDIA. CUTLASS 4.6.1, <code>MMA_Traits&lt;SM120_16x8x64_TN_VS&gt;</code>. <a href="https://github.com/NVIDIA/cutlass">github.com/NVIDIA/cutlass</a></li>
+    <li id="r8">SiFive. <i>TileLink Specification</i>, TL-UL conformance level.</li>
+    <li id="r9">T. Dao. FlashAttention-2: faster attention with better parallelism and work partitioning. 2023. <a href="https://arxiv.org/abs/2307.08691">arXiv:2307.08691</a></li>
+    <li id="r10">AMD. <i>7 Series DSP48E1 Slice User Guide</i> (UG479) and <i>7 Series FPGAs Data Sheet: Overview</i> (DS180).</li>
+    <li id="r11">IEEE. <i>IEEE Standard for Floating-Point Arithmetic</i>, IEEE 754-2019.</li>
+    <li id="r12">B. Zhang and R. Sennrich. Root mean square layer normalization. NeurIPS 2019. <a href="https://arxiv.org/abs/1910.07467">arXiv:1910.07467</a></li>
+    <li id="r13">N. Shazeer. GLU variants improve Transformer. 2020. <a href="https://arxiv.org/abs/2002.05202">arXiv:2002.05202</a></li>
+    <li id="r14">M. Milakov and N. Gimelshein. Online normalizer calculation for softmax. 2018. <a href="https://arxiv.org/abs/1805.02867">arXiv:1805.02867</a></li>
+    <li id="r15">A. Vaswani et al. Attention is all you need. NeurIPS 2017. <a href="https://arxiv.org/abs/1706.03762">arXiv:1706.03762</a></li>
+  </ol>
+
+  <!-- ===================================================================== appendix -->
+  <h2 id="appendix"><span class="num">A</span>Register and memory maps</h2>
+  <p>All devices take whole 32-bit words and deny a partial write. Addresses of words are multiples of 4.</p>
+
+  <figure class="table wide" id="taba1">
+    <figcaption><span class="cap">Table A1.</span> Memory map of the SoC.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Base</th><th>Size</th><th>Device</th><th>Bus port</th></tr></thead>
+        <tbody>
+          <tr><td><code>0x0000_0000</code></td><td>4 KiB</td><td><code>sys_regs</code>: link identification and status</td><td>words</td></tr>
+          <tr><td><code>0x1000_0000</code></td><td>64 KiB</td><td><code>nvfp4_tc</code>: tensor core and its tile memory (Table A2)</td><td>beats</td></tr>
+          <tr><td><code>0x1001_0000</code></td><td>64 KiB</td><td><code>flash_vector</code>: vector unit (Table A3)</td><td>words, and its own scratch port</td></tr>
+          <tr><td><code>0x1002_0000</code></td><td>128 KiB</td><td><code>kernel_engine</code>: kernel engine (Table A4)</td><td>words; also a bus master</td></tr>
+          <tr><td><code>0x2000_0000</code></td><td>128 KiB</td><td><code>scratch_memory</code></td><td>beats</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <p>In the tensor core, offsets are relative to <code>0x1000_0000</code>. In <i>A</i> and <i>B</i>, element <i>k</i> of a row or column is nibble <i>k</i>, low nibble first.</p>
+
+  <figure class="table wide" id="taba2">
+    <figcaption><span class="cap">Table A2.</span> Registers and memory regions of the tensor core, <code>nvfp4_tc</code>.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Offset</th><th>Name</th><th>Access</th><th>Contents</th></tr></thead>
+        <tbody>
+          <tr><td><code>0x0000</code></td><td>ID</td><td>RO</td><td><code>0x4E56_5443</code> ("NVTC")</td></tr>
+          <tr><td><code>0x0004</code></td><td>TILE</td><td>RO</td><td>maximum tile {M[31:24], N[23:16], K[15:0]} = <code>0x4040_0100</code></td></tr>
+          <tr><td><code>0x0008</code></td><td>ARRAY</td><td>RO</td><td>{PM, PN} = <code>0x0204</code></td></tr>
+          <tr><td><code>0x000C</code></td><td>CTRL</td><td>WO</td><td>bit 0 START: C = A × B + C; with bit 1 OVERWRITE: C = A × B</td></tr>
+          <tr><td><code>0x0010</code></td><td>STATUS</td><td>RO</td><td>bit 0 busy; bit 1 the last START was rejected</td></tr>
+          <tr><td><code>0x0014</code></td><td>MODE</td><td>RW</td><td>Table 2</td></tr>
+          <tr><td><code>0x0018</code></td><td>DIMS</td><td>RW</td><td>{M, N, K} of the next START: M a multiple of 2, N of 4, K of 32</td></tr>
+          <tr><td><code>0x001C</code></td><td>OPS</td><td>RO</td><td>completed STARTs</td></tr>
+          <tr><td><code>0x0020</code></td><td>CYCLES</td><td>RO</td><td>cycles of the last START, Eq. (6)</td></tr>
+          <tr><td><code>0x0024</code></td><td>PK</td><td>RO</td><td>elements per PE, 64</td></tr>
+          <tr class="mid"><td><code>0x2000</code></td><td>A</td><td>RW</td><td>64 rows × 128 B</td></tr>
+          <tr><td><code>0x4000</code></td><td>SFA</td><td>RW</td><td>64 rows × 16 B; byte <i>g</i> scales elements 16<i>g</i> to 16<i>g</i> + 15</td></tr>
+          <tr><td><code>0x6000</code></td><td>B</td><td>RW</td><td>64 columns × 128 B</td></tr>
+          <tr><td><code>0x8000</code></td><td>SFB</td><td>RW</td><td>64 columns × 16 B</td></tr>
+          <tr><td><code>0xC000</code></td><td>C</td><td>RW</td><td>64 × 64 FP32, row-major; C[<i>i</i>][<i>j</i>] at <code>0xC000</code> + 256<i>i</i> + 4<i>j</i></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <figure class="table wide" id="taba3">
+    <figcaption><span class="cap">Table A3.</span> Registers of the vector unit, <code>flash_vector</code>, relative to <code>0x1001_0000</code>. Offsets <code>0x20</code>–<code>0x3C</code> are one 32-byte command beat; the write of CTRL with bit 0 set starts the command. Writes wait while a command runs; reads do not.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Offset</th><th>Name</th><th>Access</th><th>Contents</th></tr></thead>
+        <tbody>
+          <tr><td><code>0x00</code></td><td>ID</td><td>RO</td><td><code>0x4656_4543</code> ("FVEC")</td></tr>
+          <tr><td><code>0x04</code></td><td>LANES</td><td>RO</td><td>8</td></tr>
+          <tr><td><code>0x08</code></td><td>STATUS</td><td>RO</td><td>bit 0 busy; bit 1 the last command was rejected</td></tr>
+          <tr><td><code>0x10</code>–<code>0x1C</code></td><td>REDUCTION, MAX, SUM, ALPHA</td><td>RO</td><td>reduction over all groups; <i>m</i>, <i>l</i> and α of the last group</td></tr>
+          <tr class="mid"><td><code>0x20</code>–<code>0x28</code></td><td>X, Y, D</td><td>RW</td><td>scratch addresses, 32-byte aligned</td></tr>
+          <tr><td><code>0x2C</code></td><td>GROUPS</td><td>RW</td><td>groups [15:0], MASK [23:16]; QUANT: rows, blocks per row</td></tr>
+          <tr><td><code>0x30</code></td><td>SCALAR</td><td>RW</td><td>FP32 <i>σ</i>; QUANT: inverse tensor scale <i>v</i></td></tr>
+          <tr><td><code>0x34</code>, <code>0x38</code></td><td>OLD_MAX, OLD_SUM</td><td>RW</td><td>softmax state <i>m</i><sub>old</sub>, <i>l</i><sub>old</sub></td></tr>
+          <tr><td><code>0x3C</code></td><td>CTRL</td><td>RW</td><td>bit 0 start; opcode [7:4] (Table 5)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <figure class="table wide" id="taba4">
+    <figcaption><span class="cap">Table A4.</span> Registers and instructions of the kernel engine, relative to <code>0x1002_0000</code>. An instruction is opcode [63:56], rd [55:52], rs1 [51:48], rs2 [47:44] and a 32-bit immediate [31:0]. Register and program writes are denied while a program runs.</figcaption>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Offset or opcode</th><th>Name</th><th>Contents or operation</th></tr></thead>
+        <tbody>
+          <tr><td><code>0x00</code>, <code>0x04</code></td><td>ID, CAPACITY</td><td><code>0x4B45_524E</code> ("KERN"); 8,192 instructions</td></tr>
+          <tr><td><code>0x08</code></td><td>STATUS</td><td>bit 0 busy, bit 1 fault, bit 2 halted</td></tr>
+          <tr><td><code>0x0C</code>, <code>0x10</code>, <code>0x14</code></td><td>START, ENTRY, LENGTH</td><td>bit 0 starts the program; first instruction; program length</td></tr>
+          <tr><td><code>0x18</code>, <code>0x1C</code>, <code>0x20</code></td><td>CYCLES, PC, FAULT</td><td>cycles of the last run; program counter; fault code: 1 unknown opcode, 2 PC outside the program, 3 denied access, 4 WAIT error</td></tr>
+          <tr><td><code>0x100</code>, <code>0x1000</code></td><td>REGS, PROGRAM</td><td>16 integer registers; 8,192 64-bit instructions, write only</td></tr>
+          <tr class="mid"><td>0, 1, 2, 3</td><td>HALT, MOVI, ADDI, ADD</td><td>stop; rd ← imm; rd ← rs1 + imm; rd ← rs1 + rs2</td></tr>
+          <tr><td>4, 5</td><td>LOAD, STORE</td><td>rd ← word at rs1 + imm; word at rs1 + imm ← rs2</td></tr>
+          <tr><td>6, 7</td><td>JMP, JNZ</td><td>pc ← imm; pc ← imm if rs1 ≠ 0</td></tr>
+          <tr><td>8, 9</td><td>COPY, FILL</td><td>copy imm words from rs1 to rs2; write imm words of value rs2 from rs1. Up to 8 words per step</td></tr>
+          <tr><td>10</td><td>WAIT</td><td>read the word at rs1 until (word &amp; imm[15:0]) = 0; fault if (word &amp; imm[31:16]) ≠ 0</td></tr>
+          <tr><td>11, 12, 13</td><td>SHL, SHR, AND</td><td>rd ← rs1 &lt;&lt; imm[4:0]; rd ← rs1 &gt;&gt; imm[4:0]; rd ← rs1 &amp; imm</td></tr>
+          <tr><td>14, 15</td><td>SHL_REG, SLTU</td><td>rd ← rs1 &lt;&lt; rs2[4:0]; rd ← 1 if rs1 &lt; rs2 (unsigned), else 0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </figure>
+
+  <footer>Sources: <code>fpga/pe/</code>, <code>fpga/mmio/</code>, <code>fpga/compute/</code>, <code>fpga/soc/</code>, <code>fpga/tsi/</code>, <code>host/transformer.py</code>, <code>host/nvfp4_model.py</code>, <code>host/transformer_model.py</code> and <code>tcgen05/nvfp4_tcgen05_check.py</code> in the NVFP4 workspace, release 1.0.0. Logs: <code>results/ws_tsi_1.0.0_fpga_gpu.log</code>, <code>results/transformer_fpga_1.0.0.log</code>, <code>results/fp4_fedp_dsp_gpu.log</code> and <code>results/compute_validation_gpu.json</code>. Build reports: <code>build/nvfp4_tsi_50mhz/</code>.</footer>
+</article>
+</body>
+</html>
